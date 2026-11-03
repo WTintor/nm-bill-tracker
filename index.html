@@ -147,14 +147,26 @@ return s + "</svg>";
 }
 $("#zia").innerHTML = zia(34);
 let D, T = {}, EXTRA = {};
-const S = { status:null, pipeS:null, tab:"changes", cur:null, topic:null, win:30, groups:new Set(), pipe:5, q:"", types:new Set(), stages:new Set(), onlyW:false, all:false, shown:40, metric:"n", evShown:50 };
+const S = { dummy:"all", status:null, pipeS:null, tab:"changes", cur:null, topic:null, win:30, groups:new Set(), pipe:5, q:"", types:new Set(), stages:new Set(), onlyW:false, all:false, shown:40, metric:"n", evShown:50 };
 const W = new Set(ls.get("w", []));
 const lastSeen = ls.get("seen", null);
 const memo = {};
 const label = k => D.sessions[k].y + " " + k.replace(/^\d+\s*/, "");
 const isReg = k => D.sessions[k].k === "Regular";
 const sessList = () => Object.keys(D.sessions).sort((a, b) => D.sessions[b].y - D.sessions[a].y || (isReg(b) - isReg(a)) || a.localeCompare(b));
-const titleOf = (sk, key) => (T[sk] || {})[key] || "";
+const longTitle = (sk, key) => (T[sk] || {})[key] || "";
+const shortTitle = (sk, key) => (((EXTRA[sk] || {}).status || {})[key] || {}).title || "";
+const titleOf = (sk, key) => shortTitle(sk, key) || longTitle(sk, key);
+const nice = t => { t = (t || "").trim(); if (t && t === t.toUpperCase()) { t = t.toLowerCase().replace(/(^|[.;:]\s+)([a-z])/g, (m, a, c) => a + c.toUpperCase()).replace(/\bnew mexico\b/g, "New Mexico"); t = t.charAt(0).toUpperCase() + t.slice(1); } return t; };
+const INTRO = {};
+const hasSub = b => !!(b.f.bills && b.f.bills.s);
+function dummyOf(sk, key, b) {
+const i = (INTRO[sk] || {})[key];
+if (!i || !(b.t === "HB" || b.t === "SB")) return null;
+if (!(i[0] < 120 || i[1] >= 3)) return null;
+return { words: i[0], blanks: i[1], sub: hasSub(b) };
+}
+const dummyTag = d => d ? (d.sub ? "Dummy bill → committee substitute" : "Dummy bill (placeholder text)") : "";
 const STATUS = [["Signed into law","red"],["Vetoed","terra"],["Passed both chambers","sky"],["Passed one chamber","turq"],["On the floor","gold"],
 ["In committee","mute"],["Died or tabled","mute"],["Pending or other","mute"],["No status loaded","mute"]];
 const STC = Object.fromEntries(STATUS);
@@ -177,7 +189,7 @@ return text ? { text, bucket: bucket(text) } : null;
 function topicOf(sk, key, b) {
 const id = sk + "|" + key;
 if (id in memo) return memo[id];
-const t = titleOf(sk, key).toLowerCase();
+const t = (shortTitle(sk, key) + " " + longTitle(sk, key)).toLowerCase().trim();
 let r = null;
 if (!t) r = PENDING;
 else { r = (TOPICS.find(([, re]) => re.test(t)) || [])[0] || (MEMORIAL.has(b.t) ? "Memorials & honors" : "Other"); }
@@ -207,6 +219,7 @@ if (S.types.size && !S.types.has(b.t)) return false;
 if (S.topic && topicOf(sk, key, b) !== S.topic) return false;
 if ([...S.stages].some(f => !b.f[f])) return false;
 if (S.onlyW && !W.has(sk + "|" + key)) return false;
+if (S.dummy !== "all") { const d = !!dummyOf(sk, key, b); if (S.dummy === "hide" ? d : !d) return false; }
 if (S.status && (statusOf(sk, key) || { bucket: "No status loaded" }).bucket !== S.status) return false;
 return true;
 }
@@ -217,6 +230,7 @@ fetch("data/tracker.json", {cache:"no-cache"}).then(r => r.json()),
 fetch("data/titles.json", {cache:"no-cache"}).then(r => r.json()).catch(() => ({}))
 ]);
 D = d; T = t; for (const k in memo) delete memo[k];
+try { const i = await fetch("data/intro.json", {cache:"no-cache"}).then(r => r.json()); for (const k in INTRO) delete INTRO[k]; Object.assign(INTRO, i); } catch {}
 if (!D.sessions || !Object.values(D.sessions)[0].y) throw new Error("old data format");
 const list = sessList();
 if (!S.cur || !D.sessions[S.cur]) S.cur = list.find(isReg) || list[0];
@@ -231,6 +245,7 @@ const name = sk.replace(/[^A-Za-z0-9._-]+/g, "_"), out = { meta:{}, amend:{}, st
 try { out.meta = await fetch(`data/meta_${name}.json`).then(r => r.json()); } catch {}
 try { out.status = await fetch(`data/status_${name}.json`).then(r => r.json()); } catch {}
 try { out.amend = (await fetch(`data/amend_${name}.json`).then(r => r.json())).bills || {}; } catch {}
+for (const k in memo) delete memo[k];
 return EXTRA[sk] = out;
 }
 /* ---------- shared pieces ---------- */
@@ -239,7 +254,10 @@ const counts = {}, sk = S.cur;
 for (const [key, b] of Object.entries(D.sessions[sk].bills)) { const t = topicOf(sk, key, b); counts[t] = (counts[t] || 0) + 1; }
 const names = TOPIC_NAMES.concat([PENDING]).filter(n => counts[n]);
 return `<div class="chips scroll"><button class="chip${!S.topic ? " on" : ""}" data-topic="">All topics</button>`
-+ names.map(n => `<button class="chip${S.topic === n ? " on" : ""}" data-topic="${esc(n)}">${esc(n)}<i>${counts[n]}</i></button>`).join("") + "</div>";
++ names.map(n => `<button class="chip${S.topic === n ? " on" : ""}" data-topic="${esc(n)}">${esc(n)}<i>${counts[n]}</i></button>`).join("") + "</div>"
++ (INTRO[sk] ? (() => { let nd = 0, ns = 0; for (const [key, b] of Object.entries(D.sessions[sk].bills)) { const d = dummyOf(sk, key, b); if (d) { nd++; if (d.sub) ns++; } }
+return `<div class="chips" style="margin-top:0"><span class="meta" style="align-self:center">Dummy bills (${nd}, ${ns} replaced by a committee substitute):</span>`
++ [["all", "Show"], ["hide", "Hide"], ["only", "Only"]].map(([v, l]) => `<button class="chip${S.dummy === v ? " on" : ""}" data-dummy="${v}">${l}</button>`).join("") + "</div>"; })() : "");
 }
 function billCard(sk, key, b, opts = {}) {
 const id = sk + "|" + key, title = titleOf(sk, key), tp = topicOf(sk, key, b);
@@ -247,7 +265,8 @@ const folders = Object.keys(b.f).sort((x, y) => (ORDER.indexOf(x) + 1 || 99) - (
 const pills = folders.map(f => { const k = KIND[f] || [f, "mute"]; return `<span class="pill kk k-${k[1]}">${esc(k[0].split(" ")[0] === "Committee" ? "Cmte" : k[0].split(" ")[0])}</span>`; }).join(" ");
 return `<div class="bill" data-open="${esc(id)}" role="button" tabindex="0"><button class="star${W.has(id) ? " on" : ""}" data-w="${esc(id)}" aria-label="Watch">★</button>
 <b>${b.t} ${b.n}</b><span class="sess">${esc(label(sk))}</span>${tp && tp !== PENDING ? `<span class="topic">${esc(tp)}</span>` : ""}
-<div class="t">${title ? esc(title) : `<span class="meta">Title not collected yet</span>`}</div>
+<div class="t">${title ? esc(nice(title)) : `<span class="meta">Title not collected yet</span>`}</div>
+${(() => { const d = dummyOf(sk, key, b); return d ? `<div class="meta"><span class="pill" style="border-color:var(--gold);background:var(--soft)">${dummyTag(d)}</span></div>` : ""; })()}
 ${(() => { const s = statusOf(sk, key); return s ? `<div class="meta"><span class="pill kk k-${STC[s.bucket]}">${esc(s.bucket)}</span> ${esc(s.text.slice(0, 110))}</div>` : `<div class="meta">Status not loaded · last activity ${fmtD(b.last)}</div>`; })()}<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">${pills}</div></div>`;
 }
 /* ---------- what's new ---------- */
@@ -272,7 +291,7 @@ cur.items.push(e);
 const html = days.map((g, i) => `<div class="day">${fmtDay(g.day + "T12:00")}${i === 0 && g.day === all[0]?.d.slice(0, 10) ? " · latest activity" : ""}</div>` + g.items.map(e => {
 const k = KIND[e.fo] || [e.fo, "mute"], id = e.sk + "|" + e.key;
 return `<button class="ev k-${k[1]}" data-open="${esc(id)}"><div style="flex:1;min-width:0"><b>${e.b.t} ${e.b.n}</b> <span class="pill kk k-${k[1]}">${esc(k[0])}${e.c > 1 ? " ×" + e.c : ""}</span> <span class="meta">${fmtT(e.d)}</span>
-<div class="t">${titleOf(sk, e.key) ? esc(titleOf(sk, e.key)) : ""}</div></div></button>`;
+<div class="t">${titleOf(sk, e.key) ? esc(nice(titleOf(sk, e.key))) : ""}</div></div></button>`;
 }).join("")).join("");
 $("#changes").innerHTML = `${banner}
 <div class="chips" style="margin-top:0">${[[7,"Last 7 days"],[30,"Last 30 days"],[9999,"Whole session"]].map(([d, l]) => `<button class="chip${S.win === d ? " on" : ""}" data-win="${d}">${l}</button>`).join("")}</div>
@@ -333,7 +352,7 @@ function renderBills() {
 const sks = S.all ? sessList() : [S.cur], words = S.q.toLowerCase().split(/\s+/).filter(Boolean), items = [];
 for (const sk of sks) for (const [key, b] of Object.entries(D.sessions[sk].bills)) {
 if (!passes(sk, key, b)) continue;
-if (words.length) { const hay = `${key} ${b.t} ${b.n} ${b.t}${b.n} ${titleOf(sk, key)}`.toLowerCase(); if (!words.every(w => hay.includes(w))) continue; }
+if (words.length) { const hay = `${key} ${b.t} ${b.n} ${b.t}${b.n} ${shortTitle(sk, key)} ${longTitle(sk, key)}`.toLowerCase(); if (!words.every(w => hay.includes(w))) continue; }
 items.push([sk, key, b]);
 }
 items.sort((x, y) => y[2].last.localeCompare(x[2].last));
@@ -387,11 +406,13 @@ ${hnames.map(n => `<tr><td>${esc(n)}</td>${heatS.map(k => { const v = share[k].n
 async function openBill(id) {
 const [sk, key] = id.split("|"), b = D.sessions[sk].bills[key], title = titleOf(sk, key), tp = topicOf(sk, key, b), url = billUrl(sk, b);
 const folders = Object.keys(b.f).sort((x, y) => (ORDER.indexOf(x) + 1 || 99) - (ORDER.indexOf(y) + 1 || 99));
-const docs = folders.map(f => { const k = KIND[f] || [f, "mute"]; return `<div class="doc"><span class="pill kk k-${k[1]}">${esc(k[0])}${b.f[f].c > 1 ? " ×" + b.f[f].c : ""}</span><span class="meta">${fmtD(b.f[f].d)}</span><a href="${BASE + b.f[f].u}" target="_blank" rel="noopener">Open PDF</a></div>`; }).join("");
+const docs = folders.map(f => { const k = KIND[f] || [f, "mute"]; return `<div class="doc"><span class="pill kk k-${k[1]}">${esc(k[0])}${b.f[f].c > 1 ? " ×" + b.f[f].c : ""}${f === "bills" && b.f[f].s ? " + committee sub" : ""}</span><span class="meta">${fmtD(b.f[f].d)}</span><a href="${BASE + b.f[f].u}" target="_blank" rel="noopener">Open PDF</a></div>`; }).join("");
 $("#panel").innerHTML = `<div style="display:flex;justify-content:space-between"><h3>${b.t} ${b.n} <span class="sess">${esc(label(sk))}</span></h3><button class="btn" data-close="1">Close</button></div>
 <div class="meta">Last activity ${fmtD(b.last)}${tp && tp !== PENDING ? " · " + esc(tp) : ""}</div>
 <div style="margin:6px 0">${(() => { const s = statusOf(sk, key); return s ? `<span class="pill kk k-${STC[s.bucket]}">${esc(s.bucket)}</span> <span style="font-size:14px">${esc(s.text)}</span>` : `<span class="meta">Official status not loaded yet for this session. The documents below show what has been posted, not whether the bill passed.</span>`; })()}</div>
-<p style="margin:8px 0">${title ? esc(title) : "Title not collected yet."}</p>
+<p style="margin:8px 0">${title ? esc(nice(title)) : "Title not collected yet."}</p>
+${shortTitle(sk, key) && longTitle(sk, key) ? `<div class="note">Official title: ${esc(nice(longTitle(sk, key)))}</div>` : ""}
+${(() => { const d = dummyOf(sk, key, b); return d ? `<div class="banner"><b>${dummyTag(d)}.</b> The introduced text is only about ${d.words} words${d.blanks ? " with blank placeholders" : ""}, so it was filed as a placeholder.${d.sub ? " A committee substitute was posted later; the real content is in the substitute, not the introduced bill." : " No committee substitute is posted yet."}</div>` : ""; })()}
 <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn${W.has(id) ? " pri" : ""}" data-w2="${esc(id)}">${W.has(id) ? "★ Watching" : "☆ Watch"}</button>${url ? `<a class="btn" href="${url}" target="_blank" rel="noopener">Official bill page</a>` : ""}</div>
 <h2>Documents</h2><div>${docs}</div><div id="extra"></div><div id="simil"></div>`;
 $("#sheet").classList.add("on");
@@ -401,12 +422,12 @@ if (m && (m.sponsors || m.location || m.actions)) h += `<h2>From the bill page</
 if (am) h += `<h2>Amendment language <small>${am.length} document${am.length > 1 ? "s" : ""}</small></h2>` + am.map(a => `<div class="snip"><b>${a.k === "cs" ? "Committee sub/amendment" : a.k === "fa" ? "Floor amendment" : "In context"}</b> · ${a.w} words · ${a.x} strike / ${a.i} insert<br>${(a.s || []).map(esc).join("<br>")}<br><a href="${BASE + a.f}" target="_blank" rel="noopener">Open PDF</a></div>`).join("");
 $("#extra").innerHTML = h;
 const sim = similar(sk, key);
-$("#simil").innerHTML = `<h2>Similar bills in other years</h2>` + (sim === null ? `<div class="note">This bill’s title hasn’t been collected yet.</div>` : sim.length ? sim.map(r => { const bb = D.sessions[r.sk].bills[r.key], f = bb.f.bills || bb.f[Object.keys(bb.f)[0]]; return `<div class="doc"><a href="${BASE + f.u}" target="_blank" rel="noopener">${esc(label(r.sk))} ${bb.t} ${bb.n}</a><span style="flex:1;text-align:right;font-size:13px">${esc(r.title.slice(0, 120))}</span></div>`; }).join("") + `<div class="note">Matched by title. Bill numbers restart every session.</div>` : `<div class="note">No close matches among the titles collected so far.</div>`);
+$("#simil").innerHTML = `<h2>Similar bills in other years</h2>` + (sim === null ? `<div class="note">This bill’s title hasn’t been collected yet.</div>` : sim.length ? sim.map(r => { const bb = D.sessions[r.sk].bills[r.key], f = bb.f.bills || bb.f[Object.keys(bb.f)[0]]; return `<div class="doc"><a href="${BASE + f.u}" target="_blank" rel="noopener">${esc(label(r.sk))} ${bb.t} ${bb.n}</a><span style="flex:1;text-align:right;font-size:13px">${esc(nice(r.title).slice(0, 120))}</span></div>`; }).join("") + `<div class="note">Matched by title. Bill numbers restart every session.</div>` : `<div class="note">No close matches among the titles collected so far.</div>`);
 }
 const STOP = new Set("relating the and for with new mexico act providing making amending enacting repealing authorizing requiring creating relates state fund funds certain".split(" "));
 const tokens = t => new Set(t.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)));
 function similar(sk, key) {
-const t = titleOf(sk, key); if (!t) return null;
+const t = longTitle(sk, key); if (!t) return null;
 const a = tokens(t), res = []; if (a.size < 2) return res;
 for (const [k2, m] of Object.entries(T)) { if (k2 === sk || !D.sessions[k2]) continue;
 for (const [key2, title] of Object.entries(m)) { if (!title || !D.sessions[k2].bills[key2]) continue;
@@ -429,7 +450,7 @@ $("#sess").style.visibility = S.tab === "years" ? "hidden" : "visible";
 }
 const go = t => { S.tab = t; S.shown = 40; render(); scrollTo(0, 0); };
 document.addEventListener("click", e => {
-const t = e.target.closest("[data-tab],[data-s],[data-topic],[data-win],[data-group],[data-pipes],[data-st],[data-gotopic],[data-type],[data-stage],[data-opt],[data-w],[data-w2],[data-open],[data-more],[data-evmore],[data-metric],[data-csv],[data-close]");
+const t = e.target.closest("[data-tab],[data-s],[data-topic],[data-win],[data-group],[data-pipes],[data-st],[data-dummy],[data-gotopic],[data-type],[data-stage],[data-opt],[data-w],[data-w2],[data-open],[data-more],[data-evmore],[data-metric],[data-csv],[data-close]");
 if (!t) { if (e.target.id === "sheet") $("#sheet").classList.remove("on"); return; }
 const d = t.dataset;
 if (t.tagName === "A" && !t.target) e.preventDefault();
@@ -443,6 +464,7 @@ if (d.topic !== undefined) { S.topic = d.topic || null; S.shown = 40; S.evShown 
 if (d.gotopic) { S.topic = d.gotopic; return go("bills"); }
 if (d.win) { S.win = +d.win; S.evShown = 50; return render(); }
 if (d.group) { S.groups.has(d.group) ? S.groups.delete(d.group) : S.groups.add(d.group); S.evShown = 50; return render(); }
+if (d.dummy !== undefined) { S.dummy = d.dummy; S.shown = 40; S.evShown = 50; return render(); }
 if (d.st !== undefined) { S.status = S.status === d.st ? null : d.st; S.shown = 40; return render(); }
 if (d.pipes !== undefined) { S.pipeS = /^\d+$/.test(d.pipes) ? +d.pipes : d.pipes; S.shown = 40; return render(); }
 if (d.type) { S.types.has(d.type) ? S.types.delete(d.type) : S.types.add(d.type); S.shown = 40; return render(); }
