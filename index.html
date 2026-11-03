@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>NM Bill Tracker</title>
+<style>
+  :root { --bg:#f6f5f1; --card:#fff; --ink:#1d1d1b; --mute:#6b6a64; --line:#e3e1d9; --acc:#0b5d8a; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --card:#222220; --ink:#ecebe6; --mute:#9b9a92; --line:#34332f; --acc:#6bb6e0; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.4 -apple-system, system-ui, sans-serif; background:var(--bg); color:var(--ink);
+         padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom); }
+  header { position:sticky; top:0; background:var(--bg); padding:10px 0 8px; z-index:2; }
+  h1 { font-size:18px; margin:0 0 8px; }
+  .row { display:flex; gap:8px; margin-bottom:8px; }
+  input, select { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:10px;
+                  background:var(--card); color:var(--ink); min-width:0; }
+  input[type=search] { flex:1; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:99px;
+          padding:5px 11px; font-size:14px; }
+  .chip.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+  .meta { color:var(--mute); font-size:13px; margin:6px 0; }
+  .bill { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 12px; margin-bottom:8px; }
+  .bill b { font-size:17px; }
+  .tags { display:flex; flex-wrap:wrap; gap:5px; margin:6px 0; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--bg); border:1px solid var(--line); color:var(--mute); }
+  .links a { margin-right:12px; color:var(--acc); font-size:14px; text-decoration:none; }
+  .prior { margin-top:6px; padding-top:6px; border-top:1px dashed var(--line); font-size:13px; color:var(--mute); }
+  .watch { float:right; font-size:22px; background:none; border:0; color:var(--mute); padding:0 4px; }
+  .watch.on { color:#d9a400; }
+  button.more { width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; }
+</style>
+</head>
+<body>
+<header>
+  <h1>NM Bill Tracker</h1>
+  <div class="row">
+    <input id="q" type="search" placeholder="Search bill (e.g. HB 2, SJR 4)" autocomplete="off">
+    <select id="session"></select>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="meta" id="meta"></div>
+</header>
+<div id="list"></div>
+
+<script>
+const LABELS = {
+  bills:"Introduced", Committee_Subs_And_Amendments:"Committee sub/amend", Floor_Amendments:"Floor amend",
+  Amendments_In_Context:"Amend. in context", final:"Final text", firs:"FIR", LESCAnalysis:"LESC",
+  AgencyAnalysis:"Agency analysis", votes:"Votes", Tabled_Reports:"Tabled", ExecMessages:"Exec message"
+};
+const TYPES = ["HB","SB","HJR","SJR","HJM","SJM","HM","SM","HR","SR"];
+let DATA, sessionKey, typeFilter = new Set(), onlyWatch = false, shown = 60;
+const watch = new Set(JSON.parse(localStorage.getItem("watch") || "[]"));
+const $ = id => document.getElementById(id);
+const saveWatch = () => localStorage.setItem("watch", JSON.stringify([...watch]));
+
+fetch("data/tracker.json", {cache:"no-cache"}).then(r => r.json()).then(d => {
+  DATA = d;
+  const keys = Object.keys(d.sessions);
+  sessionKey = keys[0];
+  $("session").innerHTML = keys.map(k => `<option>${k}</option>`).join("");
+  buildChips(); render();
+}).catch(() => $("meta").textContent = "No data yet. Run the “Update bill data” action in GitHub first.");
+
+$("q").oninput = () => { shown = 60; render(); };
+$("session").onchange = e => { sessionKey = e.target.value; shown = 60; render(); };
+
+function buildChips() {
+  $("chips").innerHTML = TYPES.map(t => `<button class="chip" data-t="${t}">${t}</button>`).join("")
+    + `<button class="chip" data-w="1">★ Watchlist</button>`;
+  $("chips").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.w) { onlyWatch = !onlyWatch; b.classList.toggle("on", onlyWatch); }
+    else { const t = b.dataset.t; typeFilter.has(t) ? typeFilter.delete(t) : typeFilter.add(t); b.classList.toggle("on"); }
+    shown = 60; render();
+  };
+}
+
+function fmt(iso) { return new Date(iso).toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"}); }
+
+function render() {
+  const sess = DATA.sessions[sessionKey].bills;
+  const otherKey = Object.keys(DATA.sessions).find(k => k !== sessionKey);
+  const other = otherKey ? DATA.sessions[otherKey].bills : {};
+  const q = $("q").value.replace(/\s+/g, "").toUpperCase();
+  let items = Object.entries(sess).filter(([k, b]) =>
+    (!q || k.includes(q)) && (!typeFilter.size || typeFilter.has(b.type)) && (!onlyWatch || watch.has(sessionKey + k)));
+  items.sort((a, b) => b[1].last.localeCompare(a[1].last));
+  $("meta").textContent = `${items.length} items · data updated ${fmt(DATA.generated)}`;
+  const html = items.slice(0, shown).map(([k, b]) => {
+    const tags = b.folders.map(f => `<span class="tag">${LABELS[f] || f}</span>`).join("");
+    const links = b.files.sort((x, y) => x.folder.localeCompare(y.folder))
+      .map(f => `<a href="${f.url}" target="_blank" rel="noopener">${LABELS[f.folder] || f.folder}</a>`).join("");
+    const p = other[k];
+    const prior = p ? `<div class="prior">${otherKey}: ${k} existed (last activity ${fmt(p.last)}). Numbers reset each session, so check it’s the same bill:
+        ${p.files.slice(0, 3).map(f => `<a href="${f.url}" target="_blank">${LABELS[f.folder] || f.folder}</a>`).join(" · ")}</div>` : "";
+    return `<div class="bill"><button class="watch ${watch.has(sessionKey + k) ? "on" : ""}" data-k="${k}">★</button>
+      <b>${b.type} ${b.num}</b> <span class="meta">last activity ${fmt(b.last)}</span>
+      <div class="tags">${tags}</div><div class="links">${links}</div>${prior}</div>`;
+  }).join("");
+  $("list").innerHTML = html + (items.length > shown ? `<button class="more" id="more">Show more</button>` : "");
+  if ($("more")) $("more").onclick = () => { shown += 60; render(); };
+}
+
+$("list").onclick = e => {
+  const b = e.target.closest(".watch"); if (!b) return;
+  const id = sessionKey + b.dataset.k;
+  watch.has(id) ? watch.delete(id) : watch.add(id);
+  saveWatch(); b.classList.toggle("on");
+};
+</script>
+</body>
+</html>
