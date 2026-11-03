@@ -1,8 +1,13 @@
 name: Update bill data
 on:
   schedule:
-    - cron: "0 8 * * *"      # 2:00 AM Mountain (08:00 UTC) every night
-  workflow_dispatch: {}       # lets you run it by hand from the GitHub app
+    - cron: "0 8 * * *"        # 2:00 AM Mountain (08:00 UTC) every night
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Re-crawl every session (slow)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -10,18 +15,26 @@ permissions:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Crawl directory listings
-        run: python crawl.py
+      - run: pip install pypdf
+      - name: Crawl
+        env:
+          TITLE_BUDGET: "1500"
+          FULL: ${{ github.event.inputs.full == 'true' && '1' || '' }}
+        run: |
+          # Old sessions are refreshed on the 1st of each month.
+          if [ "$(date -u +%d)" = "01" ]; then export FULL=1; fi
+          python crawl.py
       - name: Commit changes
         run: |
           git config user.name "tracker-bot"
           git config user.email "tracker-bot@users.noreply.github.com"
-          git add data/tracker.json
+          git add data/*.json
           git diff --cached --quiet || git commit -m "Update data"
+          git pull --rebase
           git push
