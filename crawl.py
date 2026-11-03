@@ -20,12 +20,14 @@ SKIP = {"aspnet_client", "template", "lfcforms", "legislator information",
 DELAY = 1.0                     # seconds between requests (was 1.5)
 MAX_DEPTH = 3
 TITLE_BUDGET = int(os.environ.get("TITLE_BUDGET", "5000"))   # PDFs per run
+SCHEMA = 2
 FULL = os.environ.get("FULL") == "1"                         # re-crawl every session
 REPO = os.environ.get("GITHUB_REPOSITORY", "local")
 UA = f"NMBillTracker/2.0 (personal research; https://github.com/{REPO})"
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "data", "tracker.json")
 TITLES = os.path.join(HERE, "data", "titles.json")
+INTRO = os.path.join(HERE, "data", "intro.json")
 
 ROW = re.compile(
     r'(\d{1,2}/\d{1,2}/\d{4})\s+(\d{1,2}:\d{2}\s*[AP]M)\s+(&lt;dir&gt;|<dir>|\d+)\s*'
@@ -99,6 +101,12 @@ def crawl_session(url):
             b = bills.setdefault(typ + str(num), {"t": typ, "n": num, "last": "", "f": {}})
             f = b["f"].setdefault(folder, {"c": 0, "u": "", "d": ""})
             f["c"] += 1
+            stem = fname.rsplit(".", 1)[0]
+            if folder.lower() == "bills" and re.fullmatch(r"[A-Za-z]{1,3}S", stem[m.end():]):
+                f["s"] = 1                  # a committee substitute exists for this bill
+            if folder.lower() == "bills" and re.fullmatch(r"%s\s*0*%d" % (typ, num), stem, re.I):
+                if fname.lower().endswith(".pdf") or not f.get("i"):
+                    f["i"] = full[len(BASE):] if full.startswith(BASE) else full   # the bill as introduced
             if date >= f["d"]:
                 f["d"] = date
                 f["u"] = full[len(BASE):] if full.startswith(BASE) else full
@@ -121,21 +129,44 @@ def save(path, obj):
 def year_of(n):
     return 1900 + n if n >= 90 else 2000 + n
 
-def extract_title(pdf_bytes):
+def extract_title(pdf_bytes, num):
+    """From the introduced bill return (title, body_words, blanks), or None if this isn't clearly that bill.
+    body_words/blanks measure how much real text the bill has: a dummy (placeholder) bill is tiny."""
     from pypdf import PdfReader
     r = PdfReader(io.BytesIO(pdf_bytes))
-    text = " ".join((r.pages[0].extract_text() or "").split())
-    if len(text) < 300 and len(r.pages) > 1:
-        text += " " + " ".join((r.pages[1].extract_text() or "").split())
-    m = re.search(r'(?:AN ACT|A JOINT RESOLUTION|A JOINT MEMORIAL|A MEMORIAL|A RESOLUTION)\s+'
-                  r'(.{8,700}?)(?=BE IT|WHEREAS|\bSection 1\b|$)', text)
-    t = m.group(1) if m else text[:200]
-    t = re.sub(r'(?:(?<=\s)|^)\d{1,2}(?=\s)', ' ', t)  # stray line numbers
-    return " ".join(t.split())[:300]
+    pages = [(p.extract_text() or "") for p in r.pages[:12]]
+    raw = pages[0] if pages else ""
+    if len(raw) < 400 and len(pages) > 1:
+        raw += "\n" + pages[1]
+    # drop the margin line numbers: only a number at the START of a line (never numbers inside a title)
+    def clean(txt):
+        lines = [re.sub(r"^\d{1,2}\s+", "", l.strip()) for l in txt.splitlines()]
+        return " ".join(" ".join(l for l in lines if l and not re.fullmatch(r"\d{1,2}", l)).split())
+    text = clean(raw)
+    if not re.search(r"\b0*%d\b" % num, text[:1500]):
+        return None                     # wrong document (a report or another bill)
+    m = re.search(r"(?:AN ACT|A JOINT RESOLUTION|A JOINT MEMORIAL|A MEMORIAL|A RESOLUTION)\s+"
+                  r"(.{8,1200}?)(?=BE IT|WHEREAS|\bSection 1\b|$)", text)
+    if not m:
+        return None
+    t = m.group(1).strip()
+    if len(t) > 500:
+        t = t[:500].rsplit(" ", 1)[0] + " …"
+    full = clean("\n".join(pages))
+    k = full.find("BE IT ENACTED")
+    body = full[k + 70:] if k >= 0 else full
+    return t, len(body.split()), len(re.findall(r"_{3,}", "\n".join(pages)))
 
 def main():
-    prev = load(OUT, {}).get("sessions", {})
+    prev_doc = load(OUT, {})
+    prev = prev_doc.get("sessions", {})
+    full_run = FULL or prev_doc.get("schema") != SCHEMA
     titles = load(TITLES, {})
+    if titles.get("_v") != SCHEMA:          # earlier titles came from the wrong files; start over
+        titles = {"_v": SCHEMA}
+    intro = load(INTRO, {})                 # {session: {bill: [body words, blank lines "____"]}}
+    if intro.get("_v") != SCHEMA:
+        intro = {"_v": SCHEMA}
     rows = [(name, url) for isdir, name, url, _, _ in listing(BASE)
             if isdir and SESS.match(name)]
     if not rows:
@@ -155,7 +186,7 @@ def main():
         i = info[name]
         old = prev.get(name)
         old_ok = bool(old) and "y" in old
-        if old_ok and not FULL and i["y"] < newest - 1:
+        if old_ok and not full_run and i["y"] < newest - 1:
             sessions[name] = old          # old sessions rarely change; refresh monthly
             continue
         print(f"Crawling {name}", file=sys.stderr)
@@ -165,7 +196,7 @@ def main():
                 sessions[name] = old
             continue
         sessions[name] = {"y": i["y"], "k": i["k"], "bills": bills}
-    save(OUT, {"generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    save(OUT, {"schema": SCHEMA, "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                "sessions": sessions})
 
     # Titles: newest sessions first, capped per run.
@@ -178,20 +209,26 @@ def main():
                 continue
             if done >= TITLE_BUDGET:
                 break
-            f = b["f"].get("bills") or b["f"].get("final")
-            if not f:
-                continue
-            data = get(BASE + f["u"])
+            f = b["f"].get("bills")
+            url = f.get("i") if f else None
+            if not url:
+                continue            # no introduced file found; never guess from amendments or reports
+            data = get(BASE + url)
             done += 1
             try:
-                cache[key] = extract_title(data) if data else ""
+                got = extract_title(data, b["n"]) if data else None
             except Exception:
-                cache[key] = ""
+                got = None
+            cache[key] = got[0] if got else ""
+            if got:
+                intro.setdefault(name, {})[key] = [got[1], got[2]]
             if done % 50 == 0:
                 save(TITLES, titles)
+                save(INTRO, intro)
         if done >= TITLE_BUDGET:
             break
     save(TITLES, titles)
+    save(INTRO, intro)
     print(f"Titles fetched this run: {done}", file=sys.stderr)
 
 if __name__ == "__main__":
