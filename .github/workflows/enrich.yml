@@ -1,0 +1,40 @@
+name: Bill pages and status (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "status | probe | all (bill-page backfill, resumable)"
+        default: "status"
+      budget:
+        description: "Pages per run (mode all only)"
+        default: "8000"
+
+permissions:
+  contents: write
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pypdf beautifulsoup4
+      - name: Run
+        run: |
+          case "${{ github.event.inputs.mode }}" in
+            status) python enrich.py status all ;;
+            probe)  python enrich.py probe ;;
+            all)    python enrich.py all --budget ${{ github.event.inputs.budget }} ;;
+            *) echo "unknown mode"; exit 1 ;;
+          esac
+      - name: Commit results
+        run: |
+          git config user.name "tracker-bot"
+          git config user.email "tracker-bot@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || git commit -m "Update enrichment data"
+          git pull --rebase
+          git push
