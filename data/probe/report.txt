@@ -1,0 +1,7 @@
+== https://www.nmlegis.gov/Sessions/26%20Regular/other/LegInfo26.zip
+  downloaded 4,373,904 bytes
+  - LegInfo26.accdb  26,124,288 bytes  [Access .mdb]
+      first bytes: b'\x00\x01\x00\x00Standard ACE DB\x00\x02\x00\x00\x00\xb5n\x03b`\t\xc2U\xe9\xa9gr@?\x00\x9c~\x9f\x90\xff\x85\x9a1\xc5'
+== bill page HB2: 89,681 bytes html, saved page_HB2.html/.txt
+== bill page SB1: 99,322 bytes html, saved page_SB1.html/.txt
+== bill page HM1: 73,237 bytes html, saved page_HM1.html/.txt
