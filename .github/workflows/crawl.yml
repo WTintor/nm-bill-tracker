@@ -15,26 +15,33 @@ permissions:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 345
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pypdf
-      - name: Crawl
+      - run: pip install pypdf beautifulsoup4
+      - name: Crawl every session and collect titles
         env:
-          TITLE_BUDGET: "1500"
+          TITLE_BUDGET: "5000"
           FULL: ${{ github.event.inputs.full == 'true' && '1' || '' }}
         run: |
-          # Old sessions are refreshed on the 1st of each month.
+          # Older sessions are refreshed on the 1st of each month.
           if [ "$(date -u +%d)" = "01" ]; then export FULL=1; fi
           python crawl.py
+      - name: Official legislative status for every session
+        continue-on-error: true
+        run: python enrich.py status all
+      - name: One-time look at the LegInfo download and bill pages
+        continue-on-error: true
+        run: |
+          if [ ! -f data/probe/report.txt ]; then python enrich.py probe; fi
       - name: Commit changes
         run: |
           git config user.name "tracker-bot"
           git config user.email "tracker-bot@users.noreply.github.com"
-          git add data/*.json
+          git add data
           git diff --cached --quiet || git commit -m "Update data"
           git pull --rebase
           git push
