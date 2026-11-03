@@ -6,113 +6,301 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>NM Bill Tracker</title>
 <style>
-  :root { --bg:#f6f5f1; --card:#fff; --ink:#1d1d1b; --mute:#6b6a64; --line:#e3e1d9; --acc:#0b5d8a; }
+  :root { --bg:#f6f5f1; --card:#fff; --ink:#1d1d1b; --mute:#6b6a64; --line:#e3e1d9; --acc:#0b5d8a; --acc2:#c9d9e4; --good:#2a7d4f; }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#161615; --card:#222220; --ink:#ecebe6; --mute:#9b9a92; --line:#34332f; --acc:#6bb6e0; }
+    :root { --bg:#161615; --card:#222220; --ink:#ecebe6; --mute:#9b9a92; --line:#34332f; --acc:#6bb6e0; --acc2:#2d4352; --good:#5bbf8a; }
   }
   * { box-sizing:border-box; }
   body { margin:0; font:16px/1.4 -apple-system, system-ui, sans-serif; background:var(--bg); color:var(--ink);
-         padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom); }
-  header { position:sticky; top:0; background:var(--bg); padding:10px 0 8px; z-index:2; }
-  h1 { font-size:18px; margin:0 0 8px; }
-  .row { display:flex; gap:8px; margin-bottom:8px; }
-  input, select { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:10px;
-                  background:var(--card); color:var(--ink); min-width:0; }
-  input[type=search] { flex:1; }
-  .chips { display:flex; gap:6px; flex-wrap:wrap; }
-  .chip { border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:99px;
-          padding:5px 11px; font-size:14px; }
+         padding:env(safe-area-inset-top) 12px calc(env(safe-area-inset-bottom) + 24px); max-width:900px; margin:0 auto; }
+  header { position:sticky; top:0; background:var(--bg); padding:10px 0 6px; z-index:5; }
+  .top { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  h1 { font-size:18px; margin:0; }
+  h2 { font-size:15px; margin:18px 0 8px; }
+  nav { display:flex; gap:6px; margin:8px 0; }
+  nav button { flex:1; padding:8px 4px; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; font:inherit; font-size:14px; }
+  nav button.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+  select, input[type=search] { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); min-width:0; }
+  select { max-width:100%; } input[type=search] { width:100%; }
+  .meta { color:var(--mute); font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; }
+  .kpis { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .kpi b { display:block; font-size:24px; line-height:1.1; } .kpi span { color:var(--mute); font-size:12px; }
+  .chip { border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:99px; padding:5px 11px; font-size:14px; }
   .chip.on { background:var(--acc); color:#fff; border-color:var(--acc); }
-  .meta { color:var(--mute); font-size:13px; margin:6px 0; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .fun { display:grid; grid-template-columns:96px 1fr 76px; gap:6px 8px; align-items:center; font-size:13px; }
+  .fun .bar { height:14px; background:var(--acc2); border-radius:7px; overflow:hidden; } .fun .bar i { display:block; height:100%; background:var(--acc); }
+  .fun .v { text-align:right; color:var(--mute); }
+  svg.chart { width:100%; height:auto; display:block; } .bar { fill:var(--acc2); } .bar.sel { fill:var(--acc); } .ax { fill:var(--mute); font-size:11px; }
+  .line { fill:none; stroke:var(--good); stroke-width:2; } .dot { fill:var(--good); } .grid { stroke:var(--line); stroke-width:1; }
   .bill { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 12px; margin-bottom:8px; }
-  .bill b { font-size:17px; }
-  .tags { display:flex; flex-wrap:wrap; gap:5px; margin:6px 0; }
-  .tag { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--bg); border:1px solid var(--line); color:var(--mute); }
-  .links a { margin-right:12px; color:var(--acc); font-size:14px; text-decoration:none; }
-  .prior { margin-top:6px; padding-top:6px; border-top:1px dashed var(--line); font-size:13px; color:var(--mute); }
-  .watch { float:right; font-size:22px; background:none; border:0; color:var(--mute); padding:0 4px; }
-  .watch.on { color:#d9a400; }
-  button.more { width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; }
+  .bill b { font-size:17px; } .sess { font-size:12px; color:var(--acc); margin-left:6px; }
+  .title { font-size:14px; margin:4px 0; } .links { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 2px; }
+  .links a { font-size:13px; padding:3px 9px; border-radius:99px; background:var(--bg); border:1px solid var(--line); color:var(--acc); text-decoration:none; }
+  .star { float:right; font-size:22px; background:none; border:0; color:var(--mute); padding:0 4px; } .star.on { color:#d9a400; }
+  .sim { background:none; border:0; color:var(--acc); font:inherit; font-size:13px; padding:4px 0; }
+  .simout { font-size:13px; color:var(--mute); } .simout div { margin:4px 0; } .simout a { color:var(--acc); text-decoration:none; }
+  .more { width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; }
+  .tbl { overflow-x:auto; } table { border-collapse:collapse; width:100%; font-size:13px; white-space:nowrap; }
+  th, td { padding:6px 8px; text-align:right; border-bottom:1px solid var(--line); } th:first-child, td:first-child { text-align:left; position:sticky; left:0; background:var(--card); }
+  tr.sel td { background:var(--acc2); } td a { color:var(--acc); }
+  .banner { background:var(--acc2); border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:14px; }
+  .note { color:var(--mute); font-size:12px; margin:6px 0; }
+  section { display:none; } section.on { display:block; }
 </style>
 </head>
 <body>
 <header>
-  <h1>NM Bill Tracker</h1>
-  <div class="row">
-    <input id="q" type="search" placeholder="Search bill (e.g. HB 2, SJR 4)" autocomplete="off">
-    <select id="session"></select>
-  </div>
-  <div class="chips" id="chips"></div>
-  <div class="meta" id="meta"></div>
+  <div class="top"><h1>NM Bill Tracker</h1><span class="meta" id="upd"></span></div>
+  <nav id="tabs"><button data-tab="dash" class="on">Dashboard</button><button data-tab="bills">Bills</button><button data-tab="stats">All years</button></nav>
+  <select id="sess" aria-label="Session"></select>
 </header>
-<div id="list"></div>
+
+<section id="dash" class="on"></section>
+<section id="bills">
+  <input id="q" type="search" placeholder="Search number or topic (HB 2, groundwater…)" autocomplete="off" style="margin-top:8px">
+  <div class="chips" id="typechips"></div>
+  <div class="chips" id="stagechips"></div>
+  <div class="chips" id="optchips"></div>
+  <div class="meta" id="count"></div>
+  <div id="list" style="margin-top:8px"></div>
+</section>
+<section id="stats"></section>
 
 <script>
-const LABELS = {
-  bills:"Introduced", Committee_Subs_And_Amendments:"Committee sub/amend", Floor_Amendments:"Floor amend",
-  Amendments_In_Context:"Amend. in context", final:"Final text", firs:"FIR", LESCAnalysis:"LESC",
-  AgencyAnalysis:"Agency analysis", votes:"Votes", Tabled_Reports:"Tabled", ExecMessages:"Exec message"
-};
+const BASE = "https://www.nmlegis.gov/Sessions/";
+const FOLD = {bills:"Introduced", firs:"FIR", Committee_Subs_And_Amendments:"Cmte sub", Floor_Amendments:"Floor amend",
+  Amendments_In_Context:"In context", votes:"Votes", final:"Final", LESCAnalysis:"LESC", AgencyAnalysis:"Agency",
+  ExecMessages:"Exec msg", Tabled_Reports:"Tabled", capitaloutlays:"Capital"};
+const ORDER = Object.keys(FOLD);
+const STAGES = [["firs","FIR"],["Committee_Subs_And_Amendments","Cmte sub"],["Floor_Amendments","Floor amend"],["votes","Votes"],["final","Final"]];
 const TYPES = ["HB","SB","HJR","SJR","HJM","SJM","HM","SM","HR","SR"];
-let DATA, sessionKey, typeFilter = new Set(), onlyWatch = false, shown = 60;
-const watch = new Set(JSON.parse(localStorage.getItem("watch") || "[]"));
-const $ = id => document.getElementById(id);
-const saveWatch = () => localStorage.setItem("watch", JSON.stringify([...watch]));
+const STOP = new Set("relating the and for with new mexico act providing making amending enacting repealing authorizing requiring creating relates state fund funds certain".split(" "));
 
-fetch("data/tracker.json", {cache:"no-cache"}).then(r => r.json()).then(d => {
-  DATA = d;
-  const keys = Object.keys(d.sessions);
-  sessionKey = keys[0];
-  $("session").innerHTML = keys.map(k => `<option>${k}</option>`).join("");
-  buildChips(); render();
-}).catch(() => $("meta").textContent = "No data yet. Run the “Update bill data” action in GitHub first.");
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ls = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 
-$("q").oninput = () => { shown = 60; render(); };
-$("session").onchange = e => { sessionKey = e.target.value; shown = 60; render(); };
+let D, T = {}, cur, tab = "dash", q = "", types = new Set(), stage = new Set(), onlyW = false, all = false, shown = 50, sinceOnly = null;
+const W = new Set(ls.get("w", []));
+let lastSeen = ls.get("seen", null);
 
-function buildChips() {
-  $("chips").innerHTML = TYPES.map(t => `<button class="chip" data-t="${t}">${t}</button>`).join("")
-    + `<button class="chip" data-w="1">★ Watchlist</button>`;
-  $("chips").onclick = e => {
-    const b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.w) { onlyWatch = !onlyWatch; b.classList.toggle("on", onlyWatch); }
-    else { const t = b.dataset.t; typeFilter.has(t) ? typeFilter.delete(t) : typeFilter.add(t); b.classList.toggle("on"); }
-    shown = 60; render();
-  };
+const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
+const fmt = iso => new Date(iso).toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
+const label = k => { const s = D.sessions[k]; return s.y + " " + k.replace(/^\d+\s*/, ""); };
+const isReg = k => D.sessions[k].k === "Regular";
+const cnt = k => Object.keys(D.sessions[k].bills).length;
+
+function sessList() {
+  return Object.keys(D.sessions).sort((a, b) => D.sessions[b].y - D.sessions[a].y || (isReg(b) - isReg(a)) || a.localeCompare(b));
 }
 
-function fmt(iso) { return new Date(iso).toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"}); }
+const memo = {};
+function stats(k) {
+  if (memo[k]) return memo[k];
+  const bills = Object.values(D.sessions[k].bills);
+  const hs = bills.filter(b => b.t === "HB" || b.t === "SB");
+  const has = f => hs.filter(b => b.f[f]).length;
+  const avail = f => bills.some(b => b.f[f]);
+  const st = { all: bills.length, hs: hs.length, other: bills.length - hs.length, types: {}, c: {}, a: {} };
+  for (const b of bills) st.types[b.t] = (st.types[b.t] || 0) + 1;
+  for (const [f] of STAGES) { st.c[f] = has(f); st.a[f] = avail(f); }
+  return memo[k] = st;
+}
 
-function render() {
-  const sess = DATA.sessions[sessionKey].bills;
-  const otherKey = Object.keys(DATA.sessions).find(k => k !== sessionKey);
-  const other = otherKey ? DATA.sessions[otherKey].bills : {};
-  const q = $("q").value.replace(/\s+/g, "").toUpperCase();
-  let items = Object.entries(sess).filter(([k, b]) =>
-    (!q || k.includes(q)) && (!typeFilter.size || typeFilter.has(b.type)) && (!onlyWatch || watch.has(sessionKey + k)));
-  items.sort((a, b) => b[1].last.localeCompare(a[1].last));
-  $("meta").textContent = `${items.length} items · data updated ${fmt(DATA.generated)}`;
-  const html = items.slice(0, shown).map(([k, b]) => {
-    const tags = b.folders.map(f => `<span class="tag">${LABELS[f] || f}</span>`).join("");
-    const links = b.files.sort((x, y) => x.folder.localeCompare(y.folder))
-      .map(f => `<a href="${f.url}" target="_blank" rel="noopener">${LABELS[f.folder] || f.folder}</a>`).join("");
-    const p = other[k];
-    const prior = p ? `<div class="prior">${otherKey}: ${k} existed (last activity ${fmt(p.last)}). Numbers reset each session, so check it’s the same bill:
-        ${p.files.slice(0, 3).map(f => `<a href="${f.url}" target="_blank">${LABELS[f.folder] || f.folder}</a>`).join(" · ")}</div>` : "";
-    return `<div class="bill"><button class="watch ${watch.has(sessionKey + k) ? "on" : ""}" data-k="${k}">★</button>
-      <b>${b.type} ${b.num}</b> <span class="meta">last activity ${fmt(b.last)}</span>
-      <div class="tags">${tags}</div><div class="links">${links}</div>${prior}</div>`;
+/* ---------- load ---------- */
+async function load() {
+  const [d, t] = await Promise.all([
+    fetch("data/tracker.json", {cache:"no-cache"}).then(r => r.json()),
+    fetch("data/titles.json", {cache:"no-cache"}).then(r => r.json()).catch(() => ({}))
+  ]);
+  D = d; T = t;
+  for (const k in memo) delete memo[k];
+  const list = sessList();
+  if (!cur || !D.sessions[cur]) cur = list.find(isReg) || list[0];
+  $("#sess").innerHTML = list.map(k => `<option value="${esc(k)}">${esc(label(k))}</option>`).join("");
+  $("#sess").value = cur;
+  $("#upd").textContent = "Updated " + fmt(D.generated);
+  render();
+}
+
+/* ---------- charts ---------- */
+function barChart(data, sel) {
+  const Wd = Math.max(320, data.length * 16), H = 130, bw = Wd / data.length, mx = Math.max(1, ...data.map(d => d.v));
+  let s = `<svg class="chart" viewBox="0 0 ${Wd} ${H + 20}">`;
+  data.forEach((d, i) => {
+    const h = d.v / mx * (H - 16);
+    s += `<g data-s="${esc(d.k)}" style="cursor:pointer"><rect x="${i*bw+1}" y="${H-h}" width="${bw-2}" height="${h}" rx="2" class="bar${d.k===sel?" sel":""}"/>`
+       + `<rect x="${i*bw}" y="0" width="${bw}" height="${H}" fill="transparent"/>`;
+    if (i % 3 === 0 || d.k === sel) s += `<text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle" class="ax">'${String(d.y).slice(2)}</text>`;
+    if (d.k === sel) s += `<text x="${Math.min(Math.max(i*bw+bw/2, 14), Wd-14)}" y="${H-h-3}" text-anchor="middle" class="ax">${d.v}</text>`;
+    s += "</g>";
+  });
+  return s + "</svg>";
+}
+
+function lineChart(data) {
+  if (data.length < 2) return `<div class="note">Not enough sessions with this data yet.</div>`;
+  const Wd = 420, H = 120, x = i => 24 + i * (Wd - 40) / (data.length - 1), y = v => H - v / 100 * (H - 10);
+  let s = `<svg class="chart" viewBox="0 0 ${Wd} ${H + 20}">`;
+  for (const g of [0, 50, 100]) s += `<line x1="24" x2="${Wd-8}" y1="${y(g)}" y2="${y(g)}" class="grid"/><text x="0" y="${y(g)+4}" class="ax">${g}%</text>`;
+  s += `<polyline class="line" points="${data.map((d, i) => x(i) + "," + y(d.v)).join(" ")}"/>`;
+  data.forEach((d, i) => {
+    s += `<circle class="dot" cx="${x(i)}" cy="${y(d.v)}" r="3"/>`;
+    if (i % 3 === 0 || i === data.length - 1) s += `<text x="${x(i)}" y="${H+14}" text-anchor="middle" class="ax">'${String(d.y).slice(2)}</text>`;
+  });
+  const l = data[data.length - 1];
+  return s + `<text x="${x(data.length-1)}" y="${y(l.v)-8}" text-anchor="end" class="ax">${l.v}%</text></svg>`;
+}
+
+/* ---------- dashboard ---------- */
+function renderDash() {
+  const s = D.sessions[cur], st = stats(cur), bills = Object.entries(s.bills);
+  let banner = "";
+  if (lastSeen) {
+    const n = bills.filter(([, b]) => new Date(b.last) > new Date(lastSeen)).length;
+    banner = n ? `<div class="banner">${n} item${n>1?"s":""} in ${esc(label(cur))} changed since your last visit (${fmt(lastSeen)}). <a href="#" data-since="1">Show</a></div>` : "";
+  }
+  const latest = bills.sort((a, b) => b[1].last.localeCompare(a[1].last)).slice(0, 10);
+  const regs = sessList().filter(isReg).reverse();
+  const fun = [["Bills introduced (HB + SB)", st.hs, null]].concat(STAGES.map(([f, n]) => [n, st.c[f], st.a[f]]));
+  const funHtml = fun.map(([n, c, a]) => a === false
+    ? `<div>${n}</div><div class="meta">no ${n} folder in this session</div><div></div>`
+    : `<div>${n}</div><div class="bar"><i style="width:${pct(c, st.hs)}%"></i></div><div class="v">${c} · ${pct(c, st.hs)}%</div>`).join("");
+  const trend = regs.filter(k => stats(k).a.final && stats(k).hs > 0).map(k => ({ y: D.sessions[k].y, v: pct(stats(k).c.final, stats(k).hs) }));
+  $("#dash").innerHTML = `
+    ${banner}
+    <div class="kpis" style="margin-top:8px">
+      <div class="kpi"><b>${st.all}</b><span>measures posted</span></div>
+      <div class="kpi"><b>${st.hs}</b><span>House + Senate bills</span></div>
+      <div class="kpi"><b>${st.c.firs}</b><span>with a fiscal impact report</span></div>
+      <div class="kpi"><b>${st.c.votes}</b><span>with vote records</span></div>
+    </div>
+    <h2>How far bills get — ${esc(label(cur))}</h2>
+    <div class="card"><div class="fun">${funHtml}</div>
+      <div class="note">Share of bills with each document posted. “Final” means a final version is posted, which is a proxy for passing, not an official outcome.</div></div>
+    <h2>Recent activity</h2>
+    ${latest.map(([k, b]) => billCard(cur, k, b, false)).join("")}
+    <a href="#" data-go="bills" class="meta">See all bills in this session →</a>
+    <h2>Measures introduced, by regular session</h2>
+    <div class="card">${barChart(regs.map(k => ({ k, y: D.sessions[k].y, v: cnt(k) })), cur)}<div class="note">Tap a bar to switch session. Even-year sessions are 30-day sessions limited mostly to budget and governor-called items.</div></div>
+    <h2>Share of bills with a final version posted</h2>
+    <div class="card">${lineChart(trend)}</div>`;
+}
+
+/* ---------- all years ---------- */
+function renderStats() {
+  const rows = sessList().map(k => {
+    const st = stats(k), p = f => st.a[f] ? pct(st.c[f], st.hs) + "%" : "–";
+    return `<tr class="${k===cur?"sel":""}"><td><a href="#" data-s="${esc(k)}">${esc(label(k))}</a></td><td>${st.hs}</td><td>${st.other}</td><td>${p("firs")}</td><td>${p("Committee_Subs_And_Amendments")}</td><td>${p("votes")}</td><td>${p("final")}</td></tr>`;
   }).join("");
-  $("list").innerHTML = html + (items.length > shown ? `<button class="more" id="more">Show more</button>` : "");
-  if ($("more")) $("more").onclick = () => { shown += 60; render(); };
+  const tt = Object.values(T).reduce((a, o) => a + Object.keys(o).length, 0), tb = Object.keys(D.sessions).reduce((a, k) => a + cnt(k), 0);
+  $("#stats").innerHTML = `
+    <h2>Every session on the server</h2>
+    <div class="tbl card" style="padding:0"><table><tr><th>Session</th><th>Bills</th><th>Res/Mem</th><th>FIR</th><th>Cmte sub</th><th>Votes</th><th>Final</th></tr>${rows}</table></div>
+    <div class="note">Bills = House + Senate bills (HB, SB). Percentages are of bills; “–” means that document type isn’t posted for that session. Bill numbers restart every session, so cross-year matching uses bill titles (${tt.toLocaleString()} of ${tb.toLocaleString()} collected so far; older sessions fill in over the coming nights).</div>`;
 }
 
-$("list").onclick = e => {
-  const b = e.target.closest(".watch"); if (!b) return;
-  const id = sessionKey + b.dataset.k;
-  watch.has(id) ? watch.delete(id) : watch.add(id);
-  saveWatch(); b.classList.toggle("on");
-};
+/* ---------- bills ---------- */
+function billCard(sk, key, b, withSim = true) {
+  const title = (T[sk] || {})[key];
+  const folders = Object.keys(b.f).sort((x, y) => (ORDER.indexOf(x) + 1 || 99) - (ORDER.indexOf(y) + 1 || 99));
+  const links = folders.map(f => `<a href="${BASE + b.f[f].u}" target="_blank" rel="noopener">${esc(FOLD[f] || f)}${b.f[f].c > 1 ? " ×" + b.f[f].c : ""}</a>`).join("");
+  const id = sk + "|" + key;
+  return `<div class="bill"><button class="star${W.has(id) ? " on" : ""}" data-w="${esc(id)}" aria-label="Watch">★</button>
+    <b>${b.t} ${b.n}</b><span class="sess">${esc(label(sk))}</span> <span class="meta">last activity ${fmt(b.last)}</span>
+    ${title ? `<div class="title">${esc(title)}</div>` : ""}
+    <div class="links">${links}</div>
+    ${withSim ? `<button class="sim" data-sim="${esc(id)}">Similar bills in other years</button><div class="simout"></div>` : ""}</div>`;
+}
+
+function tokens(t) { return new Set(t.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(w => w.length > 2 && !STOP.has(w))); }
+function similar(sk, key) {
+  const t = (T[sk] || {})[key];
+  if (!t) return null;
+  const a = tokens(t), res = [];
+  if (a.size < 2) return res;
+  for (const [k2, m] of Object.entries(T)) {
+    if (k2 === sk || !D.sessions[k2]) continue;
+    for (const [key2, title] of Object.entries(m)) {
+      if (!title || !D.sessions[k2].bills[key2]) continue;
+      const b = tokens(title); let n = 0;
+      for (const w of a) if (b.has(w)) n++;
+      if (n < 2) continue;
+      const sc = n / (a.size + b.size - n);
+      if (sc >= 0.3) res.push({ sk: k2, key: key2, title, sc });
+    }
+  }
+  return res.sort((x, y) => y.sc - x.sc).slice(0, 5);
+}
+
+function renderBills() {
+  $("#typechips").innerHTML = TYPES.map(t => `<button class="chip${types.has(t) ? " on" : ""}" data-type="${t}">${t}</button>`).join("");
+  $("#stagechips").innerHTML = STAGES.map(([f, n]) => `<button class="chip${stage.has(f) ? " on" : ""}" data-stage="${f}">Has ${n}</button>`).join("");
+  $("#optchips").innerHTML = `<button class="chip${all ? " on" : ""}" data-opt="all">All years</button><button class="chip${onlyW ? " on" : ""}" data-opt="w">★ Watchlist</button>`
+    + (sinceOnly ? `<button class="chip on" data-opt="since">Since ${fmt(sinceOnly)} ✕</button>` : "");
+  const sks = all ? sessList() : [cur], words = q.toLowerCase().split(/\s+/).filter(Boolean), items = [];
+  for (const sk of sks) {
+    const tt = T[sk] || {};
+    for (const [key, b] of Object.entries(D.sessions[sk].bills)) {
+      if (types.size && !types.has(b.t)) continue;
+      if ([...stage].some(f => !b.f[f])) continue;
+      if (onlyW && !W.has(sk + "|" + key)) continue;
+      if (sinceOnly && !(new Date(b.last) > new Date(sinceOnly))) continue;
+      if (words.length) {
+        const hay = `${key} ${b.t} ${b.n} ${b.t}${b.n} ${tt[key] || ""}`.toLowerCase();
+        if (!words.every(w => hay.includes(w))) continue;
+      }
+      items.push([sk, key, b]);
+    }
+  }
+  items.sort((x, y) => y[2].last.localeCompare(x[2].last));
+  $("#count").textContent = `${items.length.toLocaleString()} result${items.length === 1 ? "" : "s"}` + (all && q ? " across all years (titles collected so far)" : "");
+  $("#list").innerHTML = items.slice(0, shown).map(([sk, key, b]) => billCard(sk, key, b)).join("")
+    + (items.length > shown ? `<button class="more" data-more="1">Show more</button>` : "");
+}
+
+/* ---------- plumbing ---------- */
+function render() {
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === tab));
+  $("#sess").style.display = tab === "stats" ? "none" : "";
+  if (tab === "dash") renderDash(); else if (tab === "bills") renderBills(); else renderStats();
+}
+const go = t => { tab = t; shown = 50; render(); scrollTo(0, 0); };
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-tab],[data-s],[data-go],[data-since],[data-type],[data-stage],[data-opt],[data-w],[data-sim],[data-more]");
+  if (!t) return;
+  const d = t.dataset;
+  if (t.tagName === "A" && !t.target) e.preventDefault();
+  if (d.tab) return go(d.tab);
+  if (d.go) return go(d.go);
+  if (d.s) { cur = d.s; $("#sess").value = cur; if (tab === "stats") tab = "dash"; render(); return; }
+  if (d.since) { sinceOnly = lastSeen; all = false; return go("bills"); }
+  if (d.type) { types.has(d.type) ? types.delete(d.type) : types.add(d.type); shown = 50; return renderBills(); }
+  if (d.stage) { stage.has(d.stage) ? stage.delete(d.stage) : stage.add(d.stage); shown = 50; return renderBills(); }
+  if (d.opt) { if (d.opt === "all") all = !all; else if (d.opt === "w") onlyW = !onlyW; else sinceOnly = null; shown = 50; return renderBills(); }
+  if (d.w) { W.has(d.w) ? W.delete(d.w) : W.add(d.w); ls.set("w", [...W]); t.classList.toggle("on"); return; }
+  if (d.more) { shown += 50; return renderBills(); }
+  if (d.sim) {
+    const [sk, key] = d.sim.split("|"), out = t.nextElementSibling, r = similar(sk, key);
+    if (r === null) { out.textContent = "Title for this bill hasn’t been collected yet; check back after the next nightly update."; return; }
+    out.innerHTML = r.length ? r.map(x => {
+      const b = D.sessions[x.sk].bills[x.key], f = b.f.bills || b.f[Object.keys(b.f)[0]];
+      return `<div><a href="${BASE + f.u}" target="_blank" rel="noopener">${esc(label(x.sk))} ${b.t} ${b.n}</a> — ${esc(x.title.slice(0, 140))}</div>`;
+    }).join("") + `<div class="note">Matched by title. Bill numbers don’t carry between sessions.</div>`
+      : "No similar titles found in the titles collected so far.";
+  }
+});
+$("#sess").addEventListener("change", e => { cur = e.target.value; shown = 50; render(); });
+$("#q").addEventListener("input", e => { q = e.target.value; shown = 50; renderBills(); });
+
+load().then(() => { ls.set("seen", D.generated); }).catch(() => { $("#dash").innerHTML = `<div class="card">No data yet. Run the “Update bill data” action in GitHub first.</div>`; });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && D) fetch("data/tracker.json", {cache:"no-cache"}).then(r => r.json()).then(d => { if (d.generated !== D.generated) load(); }).catch(() => {}); });
 </script>
 </body>
 </html>
