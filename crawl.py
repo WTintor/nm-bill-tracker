@@ -17,9 +17,9 @@ from urllib.parse import urljoin
 BASE = "https://www.nmlegis.gov/Sessions/"
 SKIP = {"aspnet_client", "template", "lfcforms", "legislator information",
         "other", "interimcommittees"}
-DELAY = 1.5                     # seconds between requests
+DELAY = 1.0                     # seconds between requests (was 1.5)
 MAX_DEPTH = 3
-TITLE_BUDGET = int(os.environ.get("TITLE_BUDGET", "1500"))   # PDFs per run
+TITLE_BUDGET = int(os.environ.get("TITLE_BUDGET", "5000"))   # PDFs per run
 FULL = os.environ.get("FULL") == "1"                         # re-crawl every session
 REPO = os.environ.get("GITHUB_REPOSITORY", "local")
 UA = f"NMBillTracker/2.0 (personal research; https://github.com/{REPO})"
@@ -49,6 +49,7 @@ def get(url):
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code in (403, 404, 410):
+                print(f"  HTTP {e.code} for {url}", file=sys.stderr)
                 return None
             if e.code in (429, 500, 502, 503, 504):
                 print(f"  {e.code} on {url}; backing off {wait}s", file=sys.stderr)
@@ -138,7 +139,10 @@ def main():
     rows = [(name, url) for isdir, name, url, _, _ in listing(BASE)
             if isdir and SESS.match(name)]
     if not rows:
+        raw = get(BASE)
         print("Could not read the Sessions index; leaving data unchanged.", file=sys.stderr)
+        print(f"  index bytes: {None if raw is None else len(raw)}; "
+              f"first 300 chars: {None if raw is None else raw[:300]!r}", file=sys.stderr)
         return
     info = {}
     for name, url in rows:
