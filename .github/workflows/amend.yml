@@ -1,0 +1,42 @@
+name: Amendment language
+on:
+  workflow_dispatch:
+    inputs:
+      session:
+        description: "Session folder name, e.g. 26 Regular"
+        default: "26 Regular"
+      budget:
+        description: "Max PDFs to download this run"
+        default: "3000"
+
+permissions:
+  contents: write
+
+jobs:
+  amend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pypdf
+      - name: Restore saved text (big files live in the cache, not in git)
+        uses: actions/cache@v4
+        with:
+          path: text
+          key: amend-text-${{ github.event.inputs.session }}-${{ github.run_id }}
+          restore-keys: amend-text-${{ github.event.inputs.session }}-
+      - name: Download and extract
+        run: python amend.py fetch "${{ github.event.inputs.session }}" --budget ${{ github.event.inputs.budget }}
+      - name: Boil down to the small file
+        run: python amend.py distill "${{ github.event.inputs.session }}"
+      - name: Commit only the small file
+        run: |
+          git config user.name "tracker-bot"
+          git config user.email "tracker-bot@users.noreply.github.com"
+          git add data/amend_*.json
+          git diff --cached --quiet || git commit -m "Update amendment summaries"
+          git pull --rebase
+          git push
