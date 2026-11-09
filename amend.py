@@ -11,7 +11,7 @@ distill reads that text and writes a compact file (the only thing committed): pe
         instructions it has, and the first few "page X, line Y ..." instructions.
 Needs: pip install pypdf
 """
-import io, json, os, re, sys, time, urllib.request, urllib.error, urllib.parse
+import safenet, io, json, os, re, sys, time, urllib.request, urllib.error, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEXT = os.path.join(HERE, "text")
@@ -34,7 +34,7 @@ def get(url):
         _last = time.time()
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=90) as r:
+            with safenet.urlopen(req, timeout=90) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code in (403, 404, 410):

@@ -23,7 +23,7 @@ Bill-page parsing is label-driven (it looks for the words "Sponsors", "Current L
 "Actions" in the page text), because I could not see the raw HTML when writing it.
 If a page does not parse, the script saves its text under data/probe/ so it can be fixed.
 """
-import io, json, os, re, sys, time, zipfile, urllib.request, urllib.error, urllib.parse
+import safenet, io, json, os, re, sys, time, zipfile, urllib.request, urllib.error, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
@@ -47,7 +47,7 @@ def get(url, binary=False):
         _last = time.time()
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=90) as r:
+            with safenet.urlopen(req, timeout=90) as r:
                 raw = r.read()
                 return raw if binary else raw.decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
@@ -121,6 +121,28 @@ def probe():
         fh.write("\n".join(out) + "\n")
     print("\n".join(out))
 
+def probe2():
+    """Hearing calendar, legislator and committee pages: which addresses exist and what they look like."""
+    os.makedirs(PROBE, exist_ok=True)
+    out = []
+    for path in ("/Calendar/Session_Calendar", "/Calendar/Committee_Calendar", "/Calendar", "/Members/Legislator_List",
+                 "/Members", "/Committees/Standing_Committees", "/Committees", "/Legislation/Legislation_List"):
+        url = SITE + path
+        html = get(url)
+        if not html:
+            out.append(f"== {url}: not reachable"); continue
+        try:
+            text = page_text(html)
+        except SystemExit:
+            text = re.sub(r"<[^>]+>", " ", html)
+        name = path.strip("/").replace("/", "_") or "root"
+        with open(os.path.join(PROBE, f"site_{name}.txt"), "w") as fh:
+            fh.write(text[:20000])
+        out.append(f"== {url}: {len(html):,} bytes. Starts: " + " ".join(text.split())[:300])
+    with open(os.path.join(PROBE, "report2.txt"), "w") as fh:
+        fh.write("\n".join(out) + "\n")
+    print("\n".join(out))
+
 # ---------------------------------------------------------------- pages
 def page_text(html):
     try:
@@ -185,7 +207,13 @@ def parse_page(text):
     return res
 
 # ---------------------------------------------------------------- official status (list page)
-ID = re.compile(r"^(HB|SB|HJR|SJR|HJM|SJM|HM|SM|HR|SR)\s*0*(\d+)$", re.I)
+ID = re.compile(r"^\*?\s*(HB|SB|HJR|SJR|HJM|SJM|HM|SM|HR|SR)\s*0*(\d+)$", re.I)
+
+def sponsor_names(td, text):
+    """One name per sponsor. Prefer the links in the cell (one link per legislator); fall back to commas."""
+    names = [" ".join(a.get_text(" ").split()) for a in td.find_all("a")]
+    names = [n for n in names if n]
+    return names or [s.strip() for s in text.split(",") if s.strip()]
 
 def parse_list(html):
     """Rows of the Legislation_List page -> {"HB2": {"title","sponsors","status"}}."""
@@ -196,20 +224,39 @@ def parse_list(html):
     soup = BeautifulSoup(html, "html.parser")
     out = {}
     for tr in soup.find_all("tr"):
-        cells = [" ".join(td.get_text(" ").split()) for td in tr.find_all(["td", "th"])]
+        tds = tr.find_all(["td", "th"])
+        cells = [" ".join(td.get_text(" ").split()) for td in tds]
         if len(cells) < 4:
             continue
         m = ID.match(cells[0])
         if not m:
             continue
         out[m.group(1).upper() + str(int(m.group(2)))] = {
-            "title": cells[1], "sponsors": [s.strip() for s in cells[2].split(",") if s.strip()], "status": cells[3]}
+            "title": cells[1], "sponsors": sponsor_names(tds[2], cells[2]), "status": cells[3]}
     return out
 
+_CODES = {}
+
+def session_codes():
+    """Dropdown on the list page: {"26 Regular": 72, "25 Special": 70, "25 Special2": 71, ...}."""
+    if _CODES:
+        return _CODES
+    html = get(f"{SITE}/Legislation/Legislation_List")
+    for m in re.finditer(r'<option[^>]*value="(\d+)"[^>]*>\s*(\d{4})\s+([^<]+?)\s*</option>', html or ""):
+        code, year, kind = int(m.group(1)), m.group(2), m.group(3).strip()
+        o = re.match(r"(\d+)(?:st|nd|rd|th)\s+Special", kind, re.I)
+        if o:
+            kind = "Special" + (o.group(1) if o.group(1) != "1" else "")
+        _CODES[year[2:] + " " + kind] = code
+    return _CODES
+
 def list_urls(session, year):
-    kind = "Regular" if "Regular" in session else session.split(" ", 1)[1]
-    return [f"{SITE}/Legislation/Legislation_List?Session={urllib.parse.quote(kind)}&Year={year}",
-            f"{SITE}/Legislation/Legislation_List?year={year}&session={urllib.parse.quote(kind)}"]
+    code = session_codes().get(session)
+    if code is None:
+        return []
+    return [f"{SITE}/Legislation/Legislation_List?Session={code}"]
+
+_SEEN = {}   # content hash -> session that first produced it
 
 def status(session, year):
     """One request per session: the list page carries title, sponsors and the status sentence
@@ -227,9 +274,20 @@ def status(session, year):
             with open(os.path.join(PROBE, f"list_{session.replace(' ', '_')}.html"), "w") as fh:
                 fh.write(html[:250000])
         return 0
-    with open(os.path.join(DATA, f"status_{session.replace(' ', '_')}.json"), "w") as fh:
+    path = os.path.join(DATA, f"status_{session.replace(' ', '_')}.json")
+    import hashlib
+    h = hashlib.sha256(json.dumps(got, sort_keys=True).encode()).hexdigest()
+    if h in _SEEN:
+        # The list page ignored the session/year in the address and returned another session's rows.
+        print(f"  {session}: identical to {_SEEN[h]}, so the page ignored the session. Not saved.", file=sys.stderr)
+        if os.path.exists(path):
+            os.remove(path)
+        return 0
+    _SEEN[h] = session
+    got["_session"] = session
+    with open(path, "w") as fh:
         json.dump(got, fh, separators=(",", ":"))
-    return len(got)
+    return len(got) - 1
 
 def status_all():
     """Every session on the server, regular AND special (special-session list pages are unverified)."""
@@ -305,6 +363,8 @@ if __name__ == "__main__":
     num = lambda flag, d: int(a[a.index(flag) + 1]) if flag in a else d
     if a[:1] == ["probe"]:
         probe()
+    elif a[:1] == ["probe2"]:
+        probe2()
     elif a[:1] == ["status"]:
         if len(a) >= 2 and a[1] != "all":
             tr = json.load(open(os.path.join(DATA, "tracker.json")))

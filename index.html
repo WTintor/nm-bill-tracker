@@ -2,483 +2,154 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.pwnedpasswords.com; base-uri 'none'; form-action 'self' https://buttondown.com; object-src 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#BF0A30">
 <title>Roundhouse Tracker · New Mexico Legislature</title>
 <style>
-:root { --bg:#F5EADB; --card:#FFFAF1; --ink:#2A1B12; --mute:#7A6657; --line:#E2D2BD; --red:#BF0A30; --gold:#F2B705;
---turq:#1F8A8A; --terra:#C4572D; --sky:#3C7FB1; --link:#14706F; --soft:#EFE0CB; }
-@media (prefers-color-scheme: dark) {
-:root { --bg:#1B120C; --card:#26190F; --ink:#F3E6D3; --mute:#B49B84; --line:#3D2A1C; --red:#D6304F; --gold:#F2B705;
---turq:#3CB4AE; --terra:#E07A4F; --sky:#6BAEDB; --link:#4CC3BC; --soft:#33231A; }
-}
-* { box-sizing:border-box; }
-body { margin:0; font:16px/1.4 -apple-system, system-ui, sans-serif; background:var(--bg); color:var(--ink); max-width:920px; margin:0 auto;
-padding-bottom:calc(env(safe-area-inset-bottom) + 40px); }
-a { color:var(--link); }
-header { position:sticky; top:0; z-index:20; background:var(--bg); }
-.band { background:#BF0A30; color:#FBEFD9; padding:calc(env(safe-area-inset-top) + 10px) 14px 8px; display:flex; align-items:center; gap:10px; }
-.band h1 { font-size:18px; margin:0; line-height:1.1; font-weight:600; letter-spacing:.2px; }
-.band small { display:block; font-size:12px; opacity:.85; font-weight:400; letter-spacing:.3px; }
-.band .zia { color:#F2B705; flex:none; display:flex; }
-.band select { margin-left:auto; max-width:46%; background:#FBEFD9; color:#2A1B12; border:0; border-radius:8px; padding:7px 8px; font:inherit; font-size:14px; }
-.steps { height:12px; background:#BF0A30 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpolygon fill='%23F2B705' points='0,12 3,12 3,9 6,9 6,6 9,6 9,3 15,3 15,6 18,6 18,9 21,9 21,12 24,12 24,13 0,13'/%3E%3C/svg%3E") repeat-x bottom; }
-nav { display:flex; gap:0; background:var(--card); border-bottom:1px solid var(--line); }
-nav button { flex:1; padding:10px 2px; border:0; background:none; color:var(--mute); font:inherit; font-size:13px; border-bottom:3px solid transparent; }
-nav button.on { color:var(--ink); font-weight:600; border-bottom-color:var(--red); }
-main { padding:12px 12px 0; }
-h2 { font-size:15px; margin:18px 0 8px; display:flex; justify-content:space-between; align-items:baseline; }
-h2 small { font-weight:400; color:var(--mute); font-size:12px; }
-.meta { color:var(--mute); font-size:13px; } .note { color:var(--mute); font-size:12px; margin:6px 0; }
-.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; }
-input[type=search], select.f { width:100%; font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
-.chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
-.scroll { flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
-.chip { flex:none; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:99px; padding:5px 11px; font-size:13px; white-space:nowrap; }
-.chip.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
-.chip i { font-style:normal; color:var(--mute); margin-left:4px; font-size:12px; } .chip.on i { color:var(--bg); opacity:.75; }
-.tiles { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
-.tile { border:1px solid var(--line); background:var(--card); border-radius:10px; padding:8px 4px; text-align:center; color:var(--ink); font:inherit; border-top:4px solid var(--kc); }
-.tile b { display:block; font-size:20px; line-height:1.1; } .tile span { font-size:11px; color:var(--mute); }
-.tile.off { opacity:.4; }
-.k-turq { --kc:var(--turq); } .k-gold { --kc:var(--gold); } .k-terra { --kc:var(--terra); } .k-sky { --kc:var(--sky); } .k-red { --kc:var(--red); } .k-mute { --kc:var(--mute); }
-.day { font-size:13px; font-weight:600; margin:16px 0 6px; color:var(--mute); text-transform:uppercase; letter-spacing:.6px; }
-.ev { display:flex; gap:10px; padding:9px 10px; background:var(--card); border:1px solid var(--line); border-left:5px solid var(--kc); border-radius:10px; margin-bottom:6px; width:100%; text-align:left; font:inherit; color:var(--ink); }
-.ev .t { font-size:13px; margin-top:2px; color:var(--ink); opacity:.9; }
-.pill { display:inline-block; font-size:11px; padding:1px 8px; border-radius:99px; background:var(--soft); color:var(--ink); border:1px solid var(--line); vertical-align:middle; }
-.pill.kk { background:var(--kc); color:#fff; border-color:var(--kc); } .pill.k-gold { color:#2A1B12; }
-.topic { font-size:11px; color:var(--link); margin-left:4px; }
-.bar { height:16px; background:var(--soft); border-radius:8px; overflow:hidden; } .bar i { display:block; height:100%; background:var(--kc, var(--red)); }
-.row { display:grid; grid-template-columns:118px 1fr 74px; gap:8px; align-items:center; font-size:13px; padding:6px 4px; width:100%; background:none; border:0; color:var(--ink); font-family:inherit; text-align:left; border-radius:8px; }
-.row.sel { background:var(--soft); } .row .v { text-align:right; color:var(--mute); }
-.bill { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 12px; margin-bottom:8px; width:100%; text-align:left; font:inherit; color:var(--ink); display:block; position:relative; }
-.bill b { font-size:17px; } .sess { font-size:12px; color:var(--link); margin-left:6px; }
-.bill .t { font-size:14px; margin:3px 0 6px; }
-.star { position:absolute; right:8px; top:6px; font-size:22px; background:none; border:0; color:var(--line); padding:4px; } .star.on { color:var(--gold); }
-.tbl { overflow-x:auto; } table { border-collapse:collapse; width:100%; font-size:13px; white-space:nowrap; }
-th, td { padding:6px 8px; text-align:right; border-bottom:1px solid var(--line); } th:first-child, td:first-child { text-align:left; position:sticky; left:0; background:var(--card); }
-th { color:var(--mute); font-weight:500; } tr.sel td { background:var(--soft); }
-td.h { color:var(--ink); }
-svg.chart { width:100%; height:auto; display:block; } .cb { fill:var(--soft); } .cb.sel { fill:var(--red); } .ax { fill:var(--mute); font-size:11px; }
-.ln { fill:none; stroke:var(--turq); stroke-width:2.2; } .dt { fill:var(--turq); } .gr { stroke:var(--line); }
-.banner { background:var(--soft); border-left:5px solid var(--gold); border-radius:10px; padding:9px 12px; margin-bottom:10px; font-size:14px; }
-.more { width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; margin-top:4px; }
-.btn { border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; padding:8px 12px; font:inherit; font-size:14px; }
-.btn.pri { background:var(--red); border-color:var(--red); color:#fff; }
-section { display:none; } section.on { display:block; }
-#sheet { position:fixed; inset:0; z-index:50; background:rgba(20,10,5,.55); display:none; }
-#sheet.on { display:block; }
-#panel { position:absolute; left:0; right:0; bottom:0; max-height:88%; overflow-y:auto; background:var(--bg); border-radius:18px 18px 0 0; padding:14px 14px calc(env(safe-area-inset-bottom) + 24px); max-width:920px; margin:0 auto; }
-#panel h3 { margin:0 0 2px; font-size:20px; } .doc { display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
-.snip { font-size:13px; background:var(--soft); border-radius:8px; padding:6px 8px; margin:4px 0; }
+  :root { --bg:#F5EADB; --card:#FFFAF1; --ink:#2A1B12; --mute:#7A6657; --line:#E2D2BD; --red:#BF0A30; --gold:#F2B705;
+          --turq:#1F8A8A; --terra:#C4572D; --sky:#3C7FB1; --link:#14706F; --soft:#EFE0CB; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1B120C; --card:#26190F; --ink:#F3E6D3; --mute:#B49B84; --line:#3D2A1C; --red:#D6304F; --gold:#F2B705;
+            --turq:#3CB4AE; --terra:#E07A4F; --sky:#6BAEDB; --link:#4CC3BC; --soft:#33231A; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:17px/1.45 -apple-system, system-ui, sans-serif; background:var(--bg); color:var(--ink); max-width:920px; margin:0 auto;
+         padding-bottom:calc(env(safe-area-inset-bottom) + 100px); }
+  a { color:var(--link); }
+  header { position:sticky; top:0; z-index:20; background:var(--bg); }
+  .band { background:#BF0A30; color:#FBEFD9; padding:calc(env(safe-area-inset-top) + 10px) 14px 8px; display:flex; align-items:center; gap:10px; }
+  .band h1 { font-size:18px; margin:0; line-height:1.1; font-weight:600; letter-spacing:.2px; }
+  .band small { display:block; font-size:12px; opacity:.85; font-weight:400; letter-spacing:.3px; }
+  .band .zia { color:#F2B705; flex:none; display:flex; }
+  .yr { background:rgba(251,239,217,.14); color:#FBEFD9; border:1px solid rgba(251,239,217,.28); border-radius:99px; padding:3px 10px 3px 9px; font:inherit; font-size:12px; white-space:nowrap; letter-spacing:.2px; display:flex; align-items:center; gap:6px; }
+  .yr svg { opacity:.8; } .yr b { font-weight:600; }
+  #picker { position:fixed; inset:0; z-index:60; background:rgba(20,10,5,.45); display:none; }
+  #picker.on { display:block; }
+  #pk { position:absolute; right:10px; top:calc(env(safe-area-inset-top) + 48px); width:min(330px, calc(100% - 20px)); max-height:70vh; overflow-y:auto; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; box-shadow:0 12px 32px rgba(0,0,0,.35); }
+  #pk .pr { display:flex; align-items:center; gap:10px; padding:5px 0; border-top:1px solid var(--line); }
+  #pk .py { width:44px; font-weight:600; font-size:15px; flex:none; }
+  #pk .pc { display:flex; gap:6px; flex-wrap:wrap; }
+  #pk .pc button { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:99px; padding:6px 13px; font:inherit; font-size:13px; }
+  #pk .pc button.sp2 { border-color:var(--gold); }
+  #pk .pc button.on { background:var(--red); border-color:var(--red); color:#fff; }
+  #pk h4 { margin:0 0 8px; font-size:12px; font-weight:600; letter-spacing:.6px; text-transform:uppercase; color:var(--mute); }
+  #pk .yrs { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
+  #pk .y { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:9px; padding:7px 0; font:inherit; font-size:14px; }
+  #pk .y.on { background:var(--red); border-color:var(--red); color:#fff; }
+  #pk .y sup { font-size:9px; color:var(--gold); margin-left:2px; font-weight:700; } #pk .y.on sup { color:#fff; }
+  #pk .legend { font-size:11px; color:var(--mute); margin:-4px 0 10px; }
+  #pk .sp { display:flex; gap:6px; flex-wrap:wrap; margin:0 0 4px; }
+  #pk .sp button { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:6px 12px; font:inherit; font-size:13px; text-align:left; display:flex; flex-direction:column; line-height:1.25; } #pk .sp button span { font-size:11px; color:var(--mute); } #pk .sp button.on span { color:#fff; opacity:.85; }
+  #pk .sp button.on { background:var(--red); color:#fff; border-color:var(--red); }
+  .sub { margin:22px 0 0; padding:12px; border:1px dashed var(--line); border-radius:12px; font-size:13px; color:var(--mute); }
+  .sub form { display:flex; gap:6px; margin-top:6px; } .sub input { flex:1; min-width:0; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
+  .band select { display:none; margin-left:auto; max-width:46%; background:#FBEFD9; color:#2A1B12; border:0; border-radius:8px; padding:7px 8px; font:inherit; font-size:14px; }
+  .steps { height:12px; background:#BF0A30 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpolygon fill='%23F2B705' points='0,12 3,12 3,9 6,9 6,6 9,6 9,3 15,3 15,6 18,6 18,9 21,9 21,12 24,12 24,13 0,13'/%3E%3C/svg%3E") repeat-x bottom; }
+  nav { display:flex; gap:0; background:var(--card); border-top:1px solid var(--line); position:fixed; left:0; right:0; bottom:0; z-index:40; max-width:920px; margin:0 auto; padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -4px 14px rgba(0,0,0,.08); }
+  nav button { flex:1; padding:9px 2px 8px; border:0; background:none; color:var(--mute); font:inherit; font-size:14px; border-top:4px solid transparent; display:flex; flex-direction:column; align-items:center; gap:3px; min-height:62px; } nav button svg { width:26px; height:26px; }
+  nav button.on { color:var(--red); font-weight:700; border-top-color:var(--red); }
+  main { padding:12px 12px 0; }
+  .big1 { font-size:26px; margin:6px 0 10px; line-height:1.15; }
+  .hs { display:flex; gap:8px; } .hs input { flex:1; min-width:0; font:inherit; font-size:18px; padding:14px 14px; border:2px solid var(--line); border-radius:14px; background:var(--card); color:var(--ink); } .hs .btn { font-size:18px; padding:0 18px; border-radius:14px; }
+  .bigtiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; } .bigtiles.four { grid-template-columns:repeat(4,1fr); gap:8px; }
+  .bt { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 12px; text-align:left; font:inherit; color:var(--ink); min-height:84px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
+  .bt b { font-size:18px; } .bt span { font-size:13px; color:var(--mute); line-height:1.25; } .bigtiles.four .bt { text-align:center; padding:10px 2px; min-height:76px; }
+  .btn.big { font-size:18px; padding:13px 16px; border-radius:12px; } .btn.back { margin:2px 0 6px; }
+  .chip, .btn { min-height:42px; } .chip { font-size:15px; padding:8px 14px; }
+  .flt summary { cursor:pointer; font-weight:600; padding:4px 0; } .flt select { width:100%; font:inherit; font-size:16px; padding:11px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
+  .plain { background:var(--soft); border-left:6px solid var(--kc, var(--gold)); border-radius:10px; padding:12px 14px; margin:8px 0; font-size:17px; }
+  .plain b { display:block; font-size:19px; margin-bottom:2px; }
+  body.big main, body.big #panel, body.big #tabs span { zoom:1.18; }
+  h2 { font-size:15px; margin:18px 0 8px; display:flex; justify-content:space-between; align-items:baseline; }
+  h2 small { font-weight:400; color:var(--mute); font-size:12px; }
+  .meta { color:var(--mute); font-size:13px; } .note { color:var(--mute); font-size:12px; margin:6px 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; }
+  input[type=search], select.f { width:100%; font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .scroll { flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
+  .chip { flex:none; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:99px; padding:5px 11px; font-size:13px; white-space:nowrap; }
+  .chip.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .chip i { font-style:normal; color:var(--mute); margin-left:4px; font-size:12px; } .chip.on i { color:var(--bg); opacity:.75; }
+  .tiles { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+  .tile { border:1px solid var(--line); background:var(--card); border-radius:10px; padding:8px 4px; text-align:center; color:var(--ink); font:inherit; border-top:4px solid var(--kc); }
+  .tile b { display:block; font-size:20px; line-height:1.1; } .tile span { font-size:11px; color:var(--mute); }
+  .tile.off { opacity:.4; }
+  .k-turq { --kc:var(--turq); } .k-gold { --kc:var(--gold); } .k-terra { --kc:var(--terra); } .k-sky { --kc:var(--sky); } .k-red { --kc:var(--red); } .k-mute { --kc:var(--mute); }
+  .day { font-size:13px; font-weight:600; margin:16px 0 6px; color:var(--mute); text-transform:uppercase; letter-spacing:.6px; }
+  .ev { display:flex; gap:10px; padding:9px 10px; background:var(--card); border:1px solid var(--line); border-left:5px solid var(--kc); border-radius:10px; margin-bottom:6px; width:100%; text-align:left; font:inherit; color:var(--ink); }
+  .ev .t { font-size:13px; margin-top:2px; color:var(--ink); opacity:.9; }
+  .pill { display:inline-block; font-size:11px; padding:1px 8px; border-radius:99px; background:var(--soft); color:var(--ink); border:1px solid var(--line); vertical-align:middle; }
+  .pill.kk { background:var(--kc); color:#fff; border-color:var(--kc); } .pill.k-gold { color:#2A1B12; }
+  .topic { font-size:11px; color:var(--link); margin-left:4px; }
+  .bar { height:16px; background:var(--soft); border-radius:8px; overflow:hidden; } .bar i { display:block; height:100%; background:var(--kc, var(--red)); }
+  .row { display:grid; grid-template-columns:118px 1fr 74px; gap:8px; align-items:center; font-size:13px; padding:6px 4px; width:100%; background:none; border:0; color:var(--ink); font-family:inherit; text-align:left; border-radius:8px; }
+  .row.sel { background:var(--soft); } .row .v { text-align:right; color:var(--mute); }
+  .bill { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 12px; margin-bottom:8px; width:100%; text-align:left; font:inherit; color:var(--ink); display:block; position:relative; }
+  .bill b { font-size:17px; } .sess { font-size:12px; color:var(--link); margin-left:6px; }
+  .bill .t { font-size:14px; margin:3px 0 6px; }
+  .star { position:absolute; right:8px; top:6px; font-size:22px; background:none; border:0; color:var(--line); padding:4px; } .star.on { color:var(--gold); }
+  .tbl { overflow-x:auto; } table { border-collapse:collapse; width:100%; font-size:13px; white-space:nowrap; }
+  th, td { padding:6px 8px; text-align:right; border-bottom:1px solid var(--line); } th:first-child, td:first-child { text-align:left; position:sticky; left:0; background:var(--card); }
+  th { color:var(--mute); font-weight:500; } tr.sel td { background:var(--soft); }
+  td.h { color:var(--ink); }
+  svg.chart { width:100%; height:auto; display:block; } .cb { fill:var(--soft); } .cb.sel { fill:var(--red); } .ax { fill:var(--mute); font-size:11px; }
+  .ln { fill:none; stroke:var(--turq); stroke-width:2.2; } .dt { fill:var(--turq); } .gr { stroke:var(--line); }
+  .banner { background:var(--soft); border-left:5px solid var(--gold); border-radius:10px; padding:9px 12px; margin-bottom:10px; font-size:14px; }
+  .more { width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; margin-top:4px; }
+  .btn { border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; padding:8px 12px; font:inherit; font-size:14px; }
+  .btn.pri { background:var(--red); border-color:var(--red); color:#fff; }
+  section { display:none; } section.on { display:block; }
+  #sheet { position:fixed; inset:0; z-index:50; background:rgba(20,10,5,.55); display:none; }
+  #sheet.on { display:block; }
+  #panel { position:absolute; left:0; right:0; bottom:0; max-height:88%; overflow-y:auto; background:var(--bg); border-radius:18px 18px 0 0; padding:14px 14px calc(env(safe-area-inset-bottom) + 24px); max-width:920px; margin:0 auto; }
+  #panel h3 { margin:0 0 2px; font-size:20px; } .doc { display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .snip { font-size:13px; background:var(--soft); border-radius:8px; padding:6px 8px; margin:4px 0; }
+  @media print { header, #tabs, .back, .btn, .chips, .more, nav, #subscribe, #sheet { display:none !important; } body { background:#fff; color:#000; } .card, .ev { break-inside:avoid; box-shadow:none; border:1px solid #999; } section { display:none !important; } section.on { display:block !important; } }
+  .stale { background:#FFF1C9; border:1px solid var(--gold); border-radius:10px; padding:8px 10px; margin:0 0 10px; font-size:14px; }
+  .br { display:block; width:100%; text-align:left; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--red); border-radius:10px; padding:9px 11px; margin:0 0 7px; font:inherit; color:var(--ink); }
+  .br .t { font-size:14px; margin-top:2px; } .br .n { font-size:15px; margin-top:4px; font-weight:600; }
+  @media print { .noprint { display:none !important; } .sheet1 { font-size:11px; } .br { padding:4px 8px; margin:0 0 3px; break-inside:avoid; } .sheet1 h2 { margin:8px 0 3px; font-size:13px; } .sheet1 .br .n, .sheet1 .br .meta, .sheet1 .lead { font-size:10px; } .sheet1 .br .n { display:none; } .sheet1 .big1 { font-size:18px; margin:0 0 4px; } .sheet1 .br b { font-size:12px; } .sheet1 .pill { font-size:9px; padding:0 4px; } .sheet1 .lead { padding:4px 8px; margin:0 0 4px; } .sheet1 .br .act { margin-top:1px; font-size:11px; } }
+  .lead { background:var(--soft); border-radius:10px; padding:10px 12px; margin:0 0 10px; font-size:16px; } .br .act { font-weight:700; color:var(--red); margin-top:4px; }
 </style>
 </head>
 <body>
 <header>
-<div class="band">
-<span class="zia" id="zia"></span>
-<h1>Roundhouse Tracker<small>New Mexico Legislature</small></h1>
-<select id="sess" aria-label="Session"></select>
-</div>
-<div class="steps"></div>
-<nav id="tabs">
-<button data-tab="changes" class="on">What's new</button><button data-tab="pipeline">Pipeline</button><button data-tab="topics">Topics</button><button data-tab="bills">Bills</button><button data-tab="years">Years</button>
-</nav>
+  <div class="band">
+    <span class="zia" id="zia"></span>
+    <h1>Roundhouse Tracker<small>New Mexico Legislature</small></h1>
+    <button class="yr" id="yr" style="margin-left:auto" aria-label="Choose year"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><b id="yrl"></b><span aria-hidden="true">▾</span></button>
+    <button class="yr" id="aa" data-aa="1" aria-label="Larger text" style="font-weight:700">Aa</button>
+    <select id="sess" aria-label="Session"></select>
+  </div>
+  <div class="steps"></div>
+  <nav id="tabs">
+    <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
+    <button data-tab="bills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Find a bill</span></button>
+    <button data-tab="following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span>Following</span></button>
+    <button data-tab="people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>Sponsors</span></button>
+  </nav>
 </header>
 <main>
-<section id="changes" class="on"></section>
-<section id="pipeline"></section>
-<section id="topics"></section>
-<section id="bills"></section>
-<section id="years"></section>
+  <section id="home" class="on"></section>
+  <section id="following"></section>
+  <section id="brief"></section>
+  <section id="changes"></section>
+  <section id="pipeline"></section>
+  <section id="topics"></section>
+  <section id="bills"></section>
+  <section id="people"></section>
+  <section id="years"></section>
+  <section id="committees"></section>
+<div id="subscribe"></div>
 </main>
+<div id="picker"><div id="pk"></div></div>
 <div id="sheet"><div id="panel"></div></div>
-<script>
-const BASE = "https://www.nmlegis.gov/Sessions/";
-const KIND = {
-bills:["Introduced","turq"], firs:["Fiscal impact report","gold"], LESCAnalysis:["LESC analysis","gold"], AgencyAnalysis:["Agency analysis","gold"],
-Committee_Subs_And_Amendments:["Committee sub / amendment","terra"], Floor_Amendments:["Floor amendment","terra"], Amendments_In_Context:["Amendment in context","terra"],
-votes:["Vote record","sky"], final:["Latest text","red"], ExecMessages:["Governor's message","red"], Tabled_Reports:["Tabled","mute"], capitaloutlays:["Capital outlay","mute"]
-};
-const ORDER = Object.keys(KIND);
-const GROUPS = { new:["New","turq",["bills"]], analysis:["Analyses","gold",["firs","LESCAnalysis","AgencyAnalysis"]],
-amend:["Amendments","terra",["Committee_Subs_And_Amendments","Floor_Amendments","Amendments_In_Context"]], votes:["Votes","sky",["votes"]], final:["Gov. & text","red",["final","ExecMessages"]] };
-const KG = {}; for (const [g, v] of Object.entries(GROUPS)) for (const k of v[2]) KG[k] = g;
-const STAGES = [["bills","Introduced only","turq"],["firs","Fiscal report posted","gold"],["Committee_Subs_And_Amendments","Committee action","terra"],
-["Floor_Amendments","Floor amendments","terra"],["votes","Vote record","sky"],["final","Latest text posted","red"]];
-const TYPES = ["HB","SB","HJR","SJR","HJM","SJM","HM","SM","HR","SR"];
-const MEMORIAL = new Set(["HM","SM","HJM","SJM","HR","SR"]);
-const LEGTYPE = {HB:["H","B"],SB:["S","B"],HJR:["H","JR"],SJR:["S","JR"],HJM:["H","JM"],SJM:["S","JM"],HM:["H","M"],SM:["S","M"],HR:["H","R"],SR:["S","R"]};
-const TOPICS = [
-["Budget & appropriations", /general appropriation|feed bill|supplemental|capital outlay|severance tax bond|bonding|\bbudget/],
-["Water", /water|aquifer|acequia|irrigation|stream|river|drought/],
-["Energy & environment", /energy|electric|solar|renewable|utility|utilities|\boil\b|natural gas|methane|mining|emission|climate|environment|air quality|wildlife|forest|hydrogen|nuclear|pollution/],
-["Education", /school|education|student|teacher|universit|college|scholarship|literacy|early childhood|child care/],
-["Health & human services", /health|medical|medicaid|hospital|behavioral|mental|insurance|opioid|pharmac|nurs|physician|disabilit|senior|aging|nutrition|\bfood\b|human services/],
-["Public safety & courts", /crim|firearm|\bgun|police|law enforcement|correction|prison|juvenile|\bcourt|judge|judicial|sentenc|penalt|domestic violence|victim|offender|detention|public safety/],
-["Elections & government", /election|voter|ballot|campaign|legislat|governor|state agenc|public employee|procurement|ethics|public record|open meetings|lobby|secretary of state|redistrict/],
-["Housing & local government", /housing|landlord|tenant|zoning|municipal|\bcount(y|ies)|local government|property|homeless|mortgage|\brent\b/],
-["Taxes & revenue", /\btax|gross receipts|revenue|exemption|deduction|rebate|\bcredit/],
-["Economy & labor", /business|worker|wage|employ|labor|economic development|tourism|film|broadband|workforce|consumer|banking|financial/],
-["Transportation", /highway|transportation|motor vehicle|\broad|driver|vehicle|aviation|railroad|transit/],
-["Agriculture", /agricultur|livestock|farm|ranch|hemp|dairy/],
-["Cannabis, alcohol & gaming", /cannabis|marijuana|liquor|alcohol|tobacco|gambling|gaming|casino|racing/],
-["Tribal, culture & veterans", /indian|tribal|tribe|pueblo|navajo|apache|cultural|museum|historic|language|veteran|military/],
-["Budget & appropriations", /appropriat/]
-];
-const TOPIC_NAMES = [...new Set(TOPICS.map(t => t[0]))].concat(["Memorials & honors", "Other"]);
-const PENDING = "Awaiting title";
-const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const ls = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
-const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
-const fmtDay = iso => new Date(iso).toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric", year:"numeric"});
-const fmtD = iso => new Date(iso).toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
-const fmtT = iso => new Date(iso).toLocaleTimeString(undefined, {hour:"numeric", minute:"2-digit"});
-function zia(size) {
-let s = `<svg viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true"><circle cx="50" cy="50" r="12" fill="none" stroke="currentColor" stroke-width="3.5"/>`;
-for (const a of [0, 90, 180, 270]) {
-s += `<g transform="rotate(${a} 50 50)">`;
-for (const [dx, len] of [[-9,20],[-3,28],[3,28],[9,20]]) s += `<line x1="${50+dx}" y1="32" x2="${50+dx}" y2="${32-len}" stroke="currentColor" stroke-width="3.5"/>`;
-s += "</g>";
-}
-return s + "</svg>";
-}
-$("#zia").innerHTML = zia(34);
-let D, T = {}, EXTRA = {};
-const S = { dummy:"all", status:null, pipeS:null, tab:"changes", cur:null, topic:null, win:30, groups:new Set(), pipe:5, q:"", types:new Set(), stages:new Set(), onlyW:false, all:false, shown:40, metric:"n", evShown:50 };
-const W = new Set(ls.get("w", []));
-const lastSeen = ls.get("seen", null);
-const memo = {};
-const label = k => D.sessions[k].y + " " + k.replace(/^\d+\s*/, "");
-const isReg = k => D.sessions[k].k === "Regular";
-const sessList = () => Object.keys(D.sessions).sort((a, b) => D.sessions[b].y - D.sessions[a].y || (isReg(b) - isReg(a)) || a.localeCompare(b));
-const longTitle = (sk, key) => (T[sk] || {})[key] || "";
-const shortTitle = (sk, key) => (((EXTRA[sk] || {}).status || {})[key] || {}).title || "";
-const titleOf = (sk, key) => shortTitle(sk, key) || longTitle(sk, key);
-const nice = t => { t = (t || "").trim(); if (t && t === t.toUpperCase()) { t = t.toLowerCase().replace(/(^|[.;:]\s+)([a-z])/g, (m, a, c) => a + c.toUpperCase()).replace(/\bnew mexico\b/g, "New Mexico"); t = t.charAt(0).toUpperCase() + t.slice(1); } return t; };
-const INTRO = {};
-const hasSub = b => !!(b.f.bills && b.f.bills.s);
-function dummyOf(sk, key, b) {
-const i = (INTRO[sk] || {})[key];
-if (!i || !(b.t === "HB" || b.t === "SB")) return null;
-if (!(i[0] < 120 || i[1] >= 3)) return null;
-return { words: i[0], blanks: i[1], sub: hasSub(b) };
-}
-const dummyTag = d => d ? (d.sub ? "Dummy bill → committee substitute" : "Dummy bill (placeholder text)") : "";
-const STATUS = [["Signed into law","red"],["Vetoed","terra"],["Passed both chambers","sky"],["Passed one chamber","turq"],["On the floor","gold"],
-["In committee","mute"],["Died or tabled","mute"],["Pending or other","mute"],["No status loaded","mute"]];
-const STC = Object.fromEntries(STATUS);
-function bucket(text) {
-const t = text.toLowerCase();
-if (/signed|chaptered|\bch\.\s*\d|chapter \d/.test(t)) return "Signed into law";
-if (/veto/.test(t)) return "Vetoed";
-if (/died|indefinitely|tabled|not printed|failed|\blost\b|withdrawn|ruled out/.test(t)) return "Died or tabled";
-if (/passed house.*senate|passed senate.*house|both (houses|chambers)|sent to governor|governor|enrolled/.test(t)) return "Passed both chambers";
-if (/passed (the )?(house|senate)/.test(t)) return "Passed one chamber";
-if (/floor/.test(t)) return "On the floor";
-if (/committee|referred|reported|do pass|hearing|\bdp\b|\b[hs][a-z]{2,5}\b$/.test(t)) return "In committee";
-return "Pending or other";
-}
-function statusOf(sk, key) {
-const x = EXTRA[sk]; if (!x) return null;
-const text = ((x.status || {})[key] || {}).status || ((x.meta || {})[key] || {}).location || "";
-return text ? { text, bucket: bucket(text) } : null;
-}
-function topicOf(sk, key, b) {
-const id = sk + "|" + key;
-if (id in memo) return memo[id];
-const t = (shortTitle(sk, key) + " " + longTitle(sk, key)).toLowerCase().trim();
-let r = null;
-if (!t) r = PENDING;
-else { r = (TOPICS.find(([, re]) => re.test(t)) || [])[0] || (MEMORIAL.has(b.t) ? "Memorials & honors" : "Other"); }
-return memo[id] = r;
-}
-function stageOf(b) { for (let i = STAGES.length - 1; i >= 0; i--) if (b.f[STAGES[i][0]]) return i; return 0; }
-function stats(sk) {
-const m = "st|" + sk; if (memo[m]) return memo[m];
-const bills = Object.values(D.sessions[sk].bills), hs = bills.filter(b => b.t === "HB" || b.t === "SB");
-const st = { all: bills.length, hs: hs.length, c: {}, a: {} };
-for (const [f] of STAGES) { st.c[f] = hs.filter(b => b.f[f]).length; st.a[f] = bills.some(b => b.f[f]); }
-return memo[m] = st;
-}
-function events(sk) {
-const m = "ev|" + sk; if (memo[m]) return memo[m];
-const ev = [];
-for (const [key, b] of Object.entries(D.sessions[sk].bills)) for (const [fo, f] of Object.entries(b.f)) if (f.d) ev.push({ sk, key, b, fo, d: f.d, u: f.u, c: f.c });
-ev.sort((x, y) => y.d.localeCompare(x.d));
-return memo[m] = ev;
-}
-function billUrl(sk, b) {
-const t = LEGTYPE[b.t]; if (!t) return null;
-return `https://www.nmlegis.gov/Legislation/Legislation?chamber=${t[0]}&legType=${t[1]}&legNo=${b.n}&year=${sk.split(" ")[0]}`;
-}
-function passes(sk, key, b) {
-if (S.types.size && !S.types.has(b.t)) return false;
-if (S.topic && topicOf(sk, key, b) !== S.topic) return false;
-if ([...S.stages].some(f => !b.f[f])) return false;
-if (S.onlyW && !W.has(sk + "|" + key)) return false;
-if (S.dummy !== "all") { const d = !!dummyOf(sk, key, b); if (S.dummy === "hide" ? d : !d) return false; }
-if (S.status && (statusOf(sk, key) || { bucket: "No status loaded" }).bucket !== S.status) return false;
-return true;
-}
-/* ---------- load ---------- */
-async function load() {
-const [d, t] = await Promise.all([
-fetch("data/tracker.json", {cache:"no-cache"}).then(r => r.json()),
-fetch("data/titles.json", {cache:"no-cache"}).then(r => r.json()).catch(() => ({}))
-]);
-D = d; T = t; for (const k in memo) delete memo[k];
-try { const i = await fetch("data/intro.json", {cache:"no-cache"}).then(r => r.json()); for (const k in INTRO) delete INTRO[k]; Object.assign(INTRO, i); } catch {}
-if (!D.sessions || !Object.values(D.sessions)[0].y) throw new Error("old data format");
-const list = sessList();
-if (!S.cur || !D.sessions[S.cur]) S.cur = list.find(isReg) || list[0];
-$("#sess").innerHTML = list.map(k => `<option value="${esc(k)}">${esc(label(k))}</option>`).join("");
-$("#sess").value = S.cur;
-await loadExtra(S.cur);
-render();
-}
-async function loadExtra(sk) {
-if (EXTRA[sk]) return EXTRA[sk];
-const name = sk.replace(/[^A-Za-z0-9._-]+/g, "_"), out = { meta:{}, amend:{}, status:{} };
-try { out.meta = await fetch(`data/meta_${name}.json`).then(r => r.json()); } catch {}
-try { out.status = await fetch(`data/status_${name}.json`).then(r => r.json()); } catch {}
-try { out.amend = (await fetch(`data/amend_${name}.json`).then(r => r.json())).bills || {}; } catch {}
-for (const k in memo) delete memo[k];
-return EXTRA[sk] = out;
-}
-/* ---------- shared pieces ---------- */
-function topicBar() {
-const counts = {}, sk = S.cur;
-for (const [key, b] of Object.entries(D.sessions[sk].bills)) { const t = topicOf(sk, key, b); counts[t] = (counts[t] || 0) + 1; }
-const names = TOPIC_NAMES.concat([PENDING]).filter(n => counts[n]);
-return `<div class="chips scroll"><button class="chip${!S.topic ? " on" : ""}" data-topic="">All topics</button>`
-+ names.map(n => `<button class="chip${S.topic === n ? " on" : ""}" data-topic="${esc(n)}">${esc(n)}<i>${counts[n]}</i></button>`).join("") + "</div>"
-+ (INTRO[sk] ? (() => { let nd = 0, ns = 0; for (const [key, b] of Object.entries(D.sessions[sk].bills)) { const d = dummyOf(sk, key, b); if (d) { nd++; if (d.sub) ns++; } }
-return `<div class="chips" style="margin-top:0"><span class="meta" style="align-self:center">Dummy bills (${nd}, ${ns} replaced by a committee substitute):</span>`
-+ [["all", "Show"], ["hide", "Hide"], ["only", "Only"]].map(([v, l]) => `<button class="chip${S.dummy === v ? " on" : ""}" data-dummy="${v}">${l}</button>`).join("") + "</div>"; })() : "");
-}
-function billCard(sk, key, b, opts = {}) {
-const id = sk + "|" + key, title = titleOf(sk, key), tp = topicOf(sk, key, b);
-const folders = Object.keys(b.f).sort((x, y) => (ORDER.indexOf(x) + 1 || 99) - (ORDER.indexOf(y) + 1 || 99));
-const pills = folders.map(f => { const k = KIND[f] || [f, "mute"]; return `<span class="pill kk k-${k[1]}">${esc(k[0].split(" ")[0] === "Committee" ? "Cmte" : k[0].split(" ")[0])}</span>`; }).join(" ");
-return `<div class="bill" data-open="${esc(id)}" role="button" tabindex="0"><button class="star${W.has(id) ? " on" : ""}" data-w="${esc(id)}" aria-label="Watch">★</button>
-<b>${b.t} ${b.n}</b><span class="sess">${esc(label(sk))}</span>${tp && tp !== PENDING ? `<span class="topic">${esc(tp)}</span>` : ""}
-<div class="t">${title ? esc(nice(title)) : `<span class="meta">Title not collected yet</span>`}</div>
-${(() => { const d = dummyOf(sk, key, b); return d ? `<div class="meta"><span class="pill" style="border-color:var(--gold);background:var(--soft)">${dummyTag(d)}</span></div>` : ""; })()}
-${(() => { const s = statusOf(sk, key); return s ? `<div class="meta"><span class="pill kk k-${STC[s.bucket]}">${esc(s.bucket)}</span> ${esc(s.text.slice(0, 110))}</div>` : `<div class="meta">Status not loaded · last activity ${fmtD(b.last)}</div>`; })()}<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">${pills}</div></div>`;
-}
-/* ---------- what's new ---------- */
-function renderChanges() {
-const sk = S.cur, all = events(sk).filter(e => passes(sk, e.key, e.b));
-const anchor = all.length ? new Date(all[0].d).getTime() : Date.now();
-const cutoff = anchor - S.win * 864e5;
-const inWin = all.filter(e => S.win >= 9999 || new Date(e.d).getTime() >= cutoff);
-const gcount = {}; for (const e of inWin) { const g = KG[e.fo]; if (g) gcount[g] = (gcount[g] || 0) + 1; }
-const shownEv = inWin.filter(e => !S.groups.size || S.groups.has(KG[e.fo]));
-let banner = "";
-if (lastSeen) {
-const n = events(sk).filter(e => new Date(e.d) > new Date(lastSeen)).length;
-if (n) banner = `<div class="banner">${n} update${n > 1 ? "s" : ""} since your last visit (${fmtD(lastSeen)}).</div>`;
-}
-const days = []; let cur = null;
-for (const e of shownEv.slice(0, S.evShown)) {
-const day = e.d.slice(0, 10);
-if (!cur || cur.day !== day) days.push(cur = { day, items: [] });
-cur.items.push(e);
-}
-const html = days.map((g, i) => `<div class="day">${fmtDay(g.day + "T12:00")}${i === 0 && g.day === all[0]?.d.slice(0, 10) ? " · latest activity" : ""}</div>` + g.items.map(e => {
-const k = KIND[e.fo] || [e.fo, "mute"], id = e.sk + "|" + e.key;
-return `<button class="ev k-${k[1]}" data-open="${esc(id)}"><div style="flex:1;min-width:0"><b>${e.b.t} ${e.b.n}</b> <span class="pill kk k-${k[1]}">${esc(k[0])}${e.c > 1 ? " ×" + e.c : ""}</span> <span class="meta">${fmtT(e.d)}</span>
-<div class="t">${titleOf(sk, e.key) ? esc(nice(titleOf(sk, e.key))) : ""}</div></div></button>`;
-}).join("")).join("");
-$("#changes").innerHTML = `${banner}
-<div class="chips" style="margin-top:0">${[[7,"Last 7 days"],[30,"Last 30 days"],[9999,"Whole session"]].map(([d, l]) => `<button class="chip${S.win === d ? " on" : ""}" data-win="${d}">${l}</button>`).join("")}</div>
-<div class="meta" style="margin:-2px 0 8px">Counted back from the latest activity in ${esc(label(sk))}${all.length ? " (" + fmtD(all[0].d) + ")" : ""}.</div>
-<div class="tiles">${Object.entries(GROUPS).map(([g, [l, c]]) => `<button class="tile k-${c}${S.groups.size && !S.groups.has(g) ? " off" : ""}" data-group="${g}"><b>${gcount[g] || 0}</b><span>${l}</span></button>`).join("")}</div>
-${topicBar()}
-${html || `<div class="card">Nothing in this window.</div>`}
-${shownEv.length > S.evShown ? `<button class="more" data-evmore="1">Show more (${shownEv.length - S.evShown} left)</button>` : ""}`;
-}
-/* ---------- pipeline ---------- */
-function renderPipeline() {
-const sk = S.cur, saved = S.status; S.status = null;
-const bills = Object.entries(D.sessions[sk].bills).filter(([k, b]) => (b.t === "HB" || b.t === "SB") && passes(sk, k, b)); S.status = saved;
-const total = bills.length, withS = bills.filter(([k]) => statusOf(sk, k)).length, byStatus = total && withS >= 0.3 * total;
-let rows, list, head, note;
-if (byStatus) {
-const dist = {}; for (const [k] of bills) { const n = (statusOf(sk, k) || { bucket: "No status loaded" }).bucket; dist[n] = (dist[n] || 0) + 1; }
-const names = STATUS.map(x => x[0]).filter(n => dist[n]);
-if (!names.includes(S.pipeS)) S.pipeS = names[0];
-rows = names.map(n => `<button class="row k-${STC[n]}${S.pipeS === n ? " sel" : ""}" data-pipes="${esc(n)}"><span>${n}</span><div class="bar"><i style="width:${pct(dist[n], total)}%"></i></div><span class="v">${dist[n]} · ${pct(dist[n], total)}%</span></button>`).join("");
-list = bills.filter(([k]) => (statusOf(sk, k) || { bucket: "No status loaded" }).bucket === S.pipeS).sort((x, y) => y[1].last.localeCompare(x[1].last));
-head = S.pipeS;
-note = "Current legislative status, read from the legislature's own bill listing (grouped by keywords in its status text).";
-} else {
-const dist = STAGES.map(() => 0); for (const [, b] of bills) dist[stageOf(b)]++;
-if (typeof S.pipeS !== "number") S.pipeS = 0;
-rows = STAGES.map(([f, l, c], i) => `<button class="row k-${c}${S.pipeS === i ? " sel" : ""}" data-pipes="${i}"><span>${l}</span><div class="bar"><i style="width:${pct(dist[i], total)}%"></i></div><span class="v">${dist[i]} · ${pct(dist[i], total)}%</span></button>`).join("");
-list = bills.filter(([, b]) => stageOf(b) === S.pipeS).sort((x, y) => y[1].last.localeCompare(x[1].last));
-head = STAGES[S.pipeS][1];
-note = "Official status isn't loaded for this session yet, so this shows which documents have been posted, not whether bills passed. Run the status step (enrich.py status all) to switch this to real legislative status.";
-}
-$("#pipeline").innerHTML = `${topicBar()}
-<h2>${byStatus ? "Where House and Senate bills stand" : "How far House and Senate bills got (documents posted)"} <small>${total} bills</small></h2>
-<div class="card" style="padding:6px">${rows}<div class="note" style="padding:0 6px">${note}</div></div>
-<h2>${esc(String(head))} <small>${list.length} bills, newest first</small></h2>
-${list.slice(0, S.shown).map(([k, b]) => billCard(sk, k, b)).join("") || `<div class="card">No bills here.</div>`}
-${list.length > S.shown ? `<button class="more" data-more="1">Show more</button>` : ""}`;
-}
-/* ---------- topics ---------- */
-function renderTopics() {
-const sk = S.cur, rows = {};
-for (const [key, b] of Object.entries(D.sessions[sk].bills)) {
-const t = topicOf(sk, key, b), r = rows[t] || (rows[t] = { n:0, hs:0, firs:0, final:0, votes:0, signed:0, known:0 });
-r.n++; if (b.t === "HB" || b.t === "SB") { r.hs++; if (b.f.firs) r.firs++; if (b.f.final) r.final++; if (b.f.votes) r.votes++; const st = statusOf(sk, key); if (st) { r.known++; if (st.bucket === "Signed into law") r.signed++; } }
-}
-const names = Object.keys(rows).filter(n => n !== PENDING).sort((a, b) => rows[b].n - rows[a].n), mx = Math.max(1, ...names.map(n => rows[n].n));
-const useSt = names.length && names.reduce((a, n) => a + rows[n].known, 0) >= 0.3 * names.reduce((a, n) => a + rows[n].hs, 0);
-const titled = Object.values(rows).reduce((a, r) => a + r.n, 0) - (rows[PENDING]?.n || 0), all = Object.values(rows).reduce((a, r) => a + r.n, 0);
-$("#topics").innerHTML = `<h2>Topics in ${esc(label(sk))} <small>${titled} of ${all} bills categorized</small></h2>
-<div class="card" style="padding:6px">${names.map(n => { const r = rows[n]; return `<button class="row" data-gotopic="${esc(n)}" style="grid-template-columns:128px 1fr 40px"><span>${esc(n)}</span><div class="bar"><i style="width:${pct(r.n, mx)}%"></i></div><span class="v">${r.n}</span></button>`; }).join("") || `<div class="note">No titles collected yet for this session.</div>`}</div>
-<h2>How each topic fares <small>House + Senate bills</small></h2>
-<div class="tbl card" style="padding:0"><table><tr><th>Topic</th><th>Bills</th><th>FIR</th><th>Votes</th><th>${useSt ? "Signed" : "Text"}</th></tr>
-${names.map(n => { const r = rows[n]; return `<tr><td>${esc(n)}</td><td>${r.hs}</td><td>${pct(r.firs, r.hs)}%</td><td>${pct(r.votes, r.hs)}%</td><td>${useSt ? pct(r.signed, r.hs) : pct(r.final, r.hs)}%</td></tr>`; }).join("")}</table></div>
-<div class="note">${useSt ? "“Signed” is the share of bills the legislature lists as signed into law." : "“Text” is the share with a latest-text file posted; load official status to see how many were actually signed."} Topics come from keywords in each bill’s title, so they are approximate. Titles are collected a batch per night; ${rows[PENDING] ? rows[PENDING].n + " bills are still waiting." : "all bills in this session have titles."} Tap a topic to see its bills.</div>`;
-}
-/* ---------- bills ---------- */
-function renderBills() {
-const sks = S.all ? sessList() : [S.cur], words = S.q.toLowerCase().split(/\s+/).filter(Boolean), items = [];
-for (const sk of sks) for (const [key, b] of Object.entries(D.sessions[sk].bills)) {
-if (!passes(sk, key, b)) continue;
-if (words.length) { const hay = `${key} ${b.t} ${b.n} ${b.t}${b.n} ${shortTitle(sk, key)} ${longTitle(sk, key)}`.toLowerCase(); if (!words.every(w => hay.includes(w))) continue; }
-items.push([sk, key, b]);
-}
-items.sort((x, y) => y[2].last.localeCompare(x[2].last));
-S._items = items;
-const stageChips = STAGES.slice(1).map(([f, l]) => `<button class="chip${S.stages.has(f) ? " on" : ""}" data-stage="${f}">Has ${l.replace(" posted", "").replace("Fiscal report", "FIR").toLowerCase().replace(/^fir$/, "FIR")}</button>`).join("");
-$("#bills").innerHTML = `<input id="q" type="search" placeholder="Bill number or topic (HB 2, groundwater…)" value="${esc(S.q)}" autocomplete="off">
-${topicBar()}
-${(() => { const c = {}; for (const [k, b] of Object.entries(D.sessions[S.cur].bills)) { const st = statusOf(S.cur, k); if (st) c[st.bucket] = (c[st.bucket] || 0) + 1; } const n = STATUS.map(x => x[0]).filter(x => c[x]); return n.length ? `<div class="chips scroll">${n.map(x => `<button class="chip${S.status === x ? " on" : ""}" data-st="${esc(x)}">${x}<i>${c[x]}</i></button>`).join("")}</div>` : ""; })()}
-<div class="chips scroll">${TYPES.map(t => `<button class="chip${S.types.has(t) ? " on" : ""}" data-type="${t}">${t}</button>`).join("")}</div>
-<div class="chips scroll">${stageChips}</div>
-<div class="chips"><button class="chip${S.all ? " on" : ""}" data-opt="all">All years</button><button class="chip${S.onlyW ? " on" : ""}" data-opt="w">★ Watchlist</button><button class="btn" data-csv="1" style="padding:4px 10px;font-size:13px">Download CSV</button></div>
-<div class="meta">${items.length.toLocaleString()} result${items.length === 1 ? "" : "s"}${S.all && S.q ? " across all years (only bills with collected titles match topic words)" : ""}</div>
-<div style="margin-top:8px">${items.slice(0, S.shown).map(([sk, k, b]) => billCard(sk, k, b)).join("")}${items.length > S.shown ? `<button class="more" data-more="1">Show more</button>` : ""}</div>`;
-const q = $("#q"); q.addEventListener("input", e => { S.q = e.target.value; S.shown = 40; const pos = e.target.selectionStart; renderBills(); const n = $("#q"); n.focus(); n.setSelectionRange(pos, pos); });
-}
-/* ---------- years ---------- */
-function barChart(data, sel, fmt) {
-const Wd = Math.max(320, data.length * 16), H = 120, bw = Wd / data.length, mx = Math.max(1, ...data.map(d => d.v));
-let s = `<svg class="chart" viewBox="0 0 ${Wd} ${H + 20}">`;
-data.forEach((d, i) => {
-const h = d.v / mx * (H - 16);
-s += `<g data-s="${esc(d.k)}" style="cursor:pointer"><rect x="${i*bw+1}" y="${H-h}" width="${bw-2}" height="${h}" rx="2" class="cb${d.k === sel ? " sel" : ""}"/><rect x="${i*bw}" y="0" width="${bw}" height="${H}" fill="transparent"/>`;
-if (i % 3 === 0 || d.k === sel) s += `<text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle" class="ax">'${String(d.y).slice(2)}</text>`;
-if (d.k === sel) s += `<text x="${Math.min(Math.max(i*bw+bw/2, 16), Wd-16)}" y="${H-h-3}" text-anchor="middle" class="ax">${fmt(d.v)}</text>`;
-s += "</g>";
-});
-return s + "</svg>";
-}
-function renderYears() {
-const regs = sessList().filter(isReg).reverse();
-const M = { n:["Measures introduced", k => stats(k).all, v => v], fir:["Bills with a fiscal report", k => pct(stats(k).c.firs, stats(k).hs), v => v + "%"],
-votes:["Bills with vote records", k => pct(stats(k).c.votes, stats(k).hs), v => v + "%"], final:["Bills with latest text posted", k => pct(stats(k).c.final, stats(k).hs), v => v + "%"] };
-const m = M[S.metric], key = { fir:"firs", votes:"votes", final:"final" }[S.metric];
-const data = regs.filter(k => !key || stats(k).a[key]).map(k => ({ k, y: D.sessions[k].y, v: m[1](k) }));
-const rows = sessList().map(k => { const st = stats(k), p = f => st.a[f] ? pct(st.c[f], st.hs) + "%" : "–";
-return `<tr class="${k === S.cur ? "sel" : ""}"><td><a href="#" data-s="${esc(k)}">${esc(label(k))}</a></td><td>${st.hs}</td><td>${st.all - st.hs}</td><td>${p("firs")}</td><td>${p("Committee_Subs_And_Amendments")}</td><td>${p("votes")}</td><td>${p("final")}</td></tr>`; }).join("");
-const heatS = regs.slice(-8).filter(k => { const ks = Object.keys(D.sessions[k].bills); return ks.filter(x => titleOf(k, x)).length >= 0.2 * ks.length; });
-const share = {}; for (const k of heatS) { const c = {}; let n = 0; for (const [key, b] of Object.entries(D.sessions[k].bills)) { const t = topicOf(k, key, b); if (t === PENDING) continue; c[t] = (c[t] || 0) + 1; n++; } share[k] = { c, n }; }
-const hnames = TOPIC_NAMES.filter(n => heatS.some(k => share[k].c[n]));
-$("#years").innerHTML = `<h2>Across every session <small>tap a bar to open it</small></h2>
-<div class="chips scroll">${Object.entries(M).map(([id, [l]]) => `<button class="chip${S.metric === id ? " on" : ""}" data-metric="${id}">${l}</button>`).join("")}</div>
-<div class="card">${barChart(data, S.cur, m[2])}<div class="note">Regular sessions only. Even-year sessions are 30 days and mostly limited to the budget and governor-called items. A missing bar means that document type isn’t posted for that session.</div></div>
-${heatS.length >= 2 ? `<h2>Topic mix <small>share of titled bills</small></h2><div class="tbl card" style="padding:0"><table><tr><th>Topic</th>${heatS.map(k => `<th>'${String(D.sessions[k].y).slice(2)}</th>`).join("")}</tr>
-${hnames.map(n => `<tr><td>${esc(n)}</td>${heatS.map(k => { const v = share[k].n ? (share[k].c[n] || 0) / share[k].n : 0; return `<td class="h" style="background:rgba(191,10,48,${Math.min(.55, v * 2.2).toFixed(2)})">${Math.round(v * 100)}%</td>`; }).join("")}</tr>`).join("")}</table></div>
-<div class="note">Only sessions with titles for at least a fifth of their bills are shown; more years appear as titles are collected.</div>` : ""}
-<h2>Every session on the server</h2>
-<div class="tbl card" style="padding:0"><table><tr><th>Session</th><th>Bills</th><th>Res/Mem</th><th>FIR</th><th>Cmte</th><th>Votes</th><th>Text</th></tr>${rows}</table></div>
-<div class="note">Bills = House and Senate bills. “–” means the document type isn’t posted for that session.</div>`;
-}
-/* ---------- detail sheet ---------- */
-async function openBill(id) {
-const [sk, key] = id.split("|"), b = D.sessions[sk].bills[key], title = titleOf(sk, key), tp = topicOf(sk, key, b), url = billUrl(sk, b);
-const folders = Object.keys(b.f).sort((x, y) => (ORDER.indexOf(x) + 1 || 99) - (ORDER.indexOf(y) + 1 || 99));
-const docs = folders.map(f => { const k = KIND[f] || [f, "mute"]; return `<div class="doc"><span class="pill kk k-${k[1]}">${esc(k[0])}${b.f[f].c > 1 ? " ×" + b.f[f].c : ""}${f === "bills" && b.f[f].s ? " + committee sub" : ""}</span><span class="meta">${fmtD(b.f[f].d)}</span><a href="${BASE + b.f[f].u}" target="_blank" rel="noopener">Open PDF</a></div>`; }).join("");
-$("#panel").innerHTML = `<div style="display:flex;justify-content:space-between"><h3>${b.t} ${b.n} <span class="sess">${esc(label(sk))}</span></h3><button class="btn" data-close="1">Close</button></div>
-<div class="meta">Last activity ${fmtD(b.last)}${tp && tp !== PENDING ? " · " + esc(tp) : ""}</div>
-<div style="margin:6px 0">${(() => { const s = statusOf(sk, key); return s ? `<span class="pill kk k-${STC[s.bucket]}">${esc(s.bucket)}</span> <span style="font-size:14px">${esc(s.text)}</span>` : `<span class="meta">Official status not loaded yet for this session. The documents below show what has been posted, not whether the bill passed.</span>`; })()}</div>
-<p style="margin:8px 0">${title ? esc(nice(title)) : "Title not collected yet."}</p>
-${shortTitle(sk, key) && longTitle(sk, key) ? `<div class="note">Official title: ${esc(nice(longTitle(sk, key)))}</div>` : ""}
-${(() => { const d = dummyOf(sk, key, b); return d ? `<div class="banner"><b>${dummyTag(d)}.</b> The introduced text is only about ${d.words} words${d.blanks ? " with blank placeholders" : ""}, so it was filed as a placeholder.${d.sub ? " A committee substitute was posted later; the real content is in the substitute, not the introduced bill." : " No committee substitute is posted yet."}</div>` : ""; })()}
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn${W.has(id) ? " pri" : ""}" data-w2="${esc(id)}">${W.has(id) ? "★ Watching" : "☆ Watch"}</button>${url ? `<a class="btn" href="${url}" target="_blank" rel="noopener">Official bill page</a>` : ""}</div>
-<h2>Documents</h2><div>${docs}</div><div id="extra"></div><div id="simil"></div>`;
-$("#sheet").classList.add("on");
-const x = await loadExtra(sk), m = x.meta[key], am = x.amend[key] || x.amend[b.t + b.n];
-let h = "";
-if (m && (m.sponsors || m.location || m.actions)) h += `<h2>From the bill page</h2>${m.location ? `<div class="meta">Current location: <b>${esc(m.location)}</b></div>` : ""}${m.sponsors ? `<div class="meta">Sponsors: ${esc(m.sponsors.join(", "))}</div>` : ""}${(m.actions || []).map(a => `<div class="doc"><span class="meta">${esc(a.date)}</span><span style="flex:1;text-align:right">${esc(a.text)}</span></div>`).join("")}`;
-if (am) h += `<h2>Amendment language <small>${am.length} document${am.length > 1 ? "s" : ""}</small></h2>` + am.map(a => `<div class="snip"><b>${a.k === "cs" ? "Committee sub/amendment" : a.k === "fa" ? "Floor amendment" : "In context"}</b> · ${a.w} words · ${a.x} strike / ${a.i} insert<br>${(a.s || []).map(esc).join("<br>")}<br><a href="${BASE + a.f}" target="_blank" rel="noopener">Open PDF</a></div>`).join("");
-$("#extra").innerHTML = h;
-const sim = similar(sk, key);
-$("#simil").innerHTML = `<h2>Similar bills in other years</h2>` + (sim === null ? `<div class="note">This bill’s title hasn’t been collected yet.</div>` : sim.length ? sim.map(r => { const bb = D.sessions[r.sk].bills[r.key], f = bb.f.bills || bb.f[Object.keys(bb.f)[0]]; return `<div class="doc"><a href="${BASE + f.u}" target="_blank" rel="noopener">${esc(label(r.sk))} ${bb.t} ${bb.n}</a><span style="flex:1;text-align:right;font-size:13px">${esc(nice(r.title).slice(0, 120))}</span></div>`; }).join("") + `<div class="note">Matched by title. Bill numbers restart every session.</div>` : `<div class="note">No close matches among the titles collected so far.</div>`);
-}
-const STOP = new Set("relating the and for with new mexico act providing making amending enacting repealing authorizing requiring creating relates state fund funds certain".split(" "));
-const tokens = t => new Set(t.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)));
-function similar(sk, key) {
-const t = longTitle(sk, key); if (!t) return null;
-const a = tokens(t), res = []; if (a.size < 2) return res;
-for (const [k2, m] of Object.entries(T)) { if (k2 === sk || !D.sessions[k2]) continue;
-for (const [key2, title] of Object.entries(m)) { if (!title || !D.sessions[k2].bills[key2]) continue;
-const b = tokens(title); let n = 0; for (const w of a) if (b.has(w)) n++;
-if (n < 2) continue; const sc = n / (a.size + b.size - n); if (sc >= 0.3) res.push({ sk: k2, key: key2, title, sc }); } }
-return res.sort((x, y) => y.sc - x.sc).slice(0, 6);
-}
-function csv() {
-const rows = [["session", "bill", "topic", "title", "stage", "last_activity", "documents"]];
-for (const [sk, key, b] of S._items || []) rows.push([label(sk), b.t + " " + b.n, topicOf(sk, key, b), titleOf(sk, key), STAGES[stageOf(b)][1], b.last, Object.keys(b.f).join("; ")]);
-const blob = new Blob([rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" });
-const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "nm-bills.csv"; a.click();
-}
-/* ---------- plumbing ---------- */
-function render() {
-document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === S.tab));
-document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === S.tab));
-$("#sess").style.visibility = S.tab === "years" ? "hidden" : "visible";
-({ changes: renderChanges, pipeline: renderPipeline, topics: renderTopics, bills: renderBills, years: renderYears })[S.tab]();
-}
-const go = t => { S.tab = t; S.shown = 40; render(); scrollTo(0, 0); };
-document.addEventListener("click", e => {
-const t = e.target.closest("[data-tab],[data-s],[data-topic],[data-win],[data-group],[data-pipes],[data-st],[data-dummy],[data-gotopic],[data-type],[data-stage],[data-opt],[data-w],[data-w2],[data-open],[data-more],[data-evmore],[data-metric],[data-csv],[data-close]");
-if (!t) { if (e.target.id === "sheet") $("#sheet").classList.remove("on"); return; }
-const d = t.dataset;
-if (t.tagName === "A" && !t.target) e.preventDefault();
-if (d.w !== undefined) { e.stopPropagation(); W.has(d.w) ? W.delete(d.w) : W.add(d.w); ls.set("w", [...W]); t.classList.toggle("on"); return; }
-if (d.w2 !== undefined) { W.has(d.w2) ? W.delete(d.w2) : W.add(d.w2); ls.set("w", [...W]); t.textContent = W.has(d.w2) ? "★ Watching" : "☆ Watch"; t.classList.toggle("pri"); return; }
-if (d.close !== undefined) return $("#sheet").classList.remove("on");
-if (d.open) return openBill(d.open);
-if (d.tab) return go(d.tab);
-if (d.s) { S.cur = d.s; $("#sess").value = S.cur; S.topic = null; if (S.tab === "years") S.tab = "changes"; S.evShown = 50; S.shown = 40; loadExtra(S.cur).then(render); scrollTo(0, 0); return; }
-if (d.topic !== undefined) { S.topic = d.topic || null; S.shown = 40; S.evShown = 50; return render(); }
-if (d.gotopic) { S.topic = d.gotopic; return go("bills"); }
-if (d.win) { S.win = +d.win; S.evShown = 50; return render(); }
-if (d.group) { S.groups.has(d.group) ? S.groups.delete(d.group) : S.groups.add(d.group); S.evShown = 50; return render(); }
-if (d.dummy !== undefined) { S.dummy = d.dummy; S.shown = 40; S.evShown = 50; return render(); }
-if (d.st !== undefined) { S.status = S.status === d.st ? null : d.st; S.shown = 40; return render(); }
-if (d.pipes !== undefined) { S.pipeS = /^\d+$/.test(d.pipes) ? +d.pipes : d.pipes; S.shown = 40; return render(); }
-if (d.type) { S.types.has(d.type) ? S.types.delete(d.type) : S.types.add(d.type); S.shown = 40; return render(); }
-if (d.stage) { S.stages.has(d.stage) ? S.stages.delete(d.stage) : S.stages.add(d.stage); S.shown = 40; return render(); }
-if (d.opt) { if (d.opt === "all") S.all = !S.all; else S.onlyW = !S.onlyW; S.shown = 40; return render(); }
-if (d.more) { S.shown += 40; return render(); }
-if (d.evmore) { S.evShown += 50; return render(); }
-if (d.metric) { S.metric = d.metric; return render(); }
-if (d.csv) return csv();
-});
-document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.open) { e.preventDefault(); openBill(e.target.dataset.open); } if (e.key === "Escape") $("#sheet").classList.remove("on"); });
-$("#sess").addEventListener("change", async e => { S.cur = e.target.value; S.topic = null; S.shown = 40; S.evShown = 50; await loadExtra(S.cur); render(); });
-load().then(() => ls.set("seen", D.generated)).catch(() => { $("#changes").innerHTML = `<div class="card">No data yet, or the data is still being rebuilt. The nightly update will fill this in. (If this lasts more than a day, run “Update bill data” in GitHub Actions.)</div>`; });
-document.addEventListener("visibilitychange", () => { if (!document.hidden && D) fetch("data/tracker.json", {cache:"no-cache"}).then(r => r.json()).then(d => { if (d.generated !== D.generated) load(); }).catch(() => {}); });
-</script>
+
+<script src="app.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 </body>
 </html>

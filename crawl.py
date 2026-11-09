@@ -10,7 +10,7 @@
 
 Output: data/tracker.json and data/titles.json
 """
-import io, json, os, re, sys, time, urllib.request, urllib.error
+import safenet, io, json, os, re, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone
 from urllib.parse import urljoin
 
@@ -47,7 +47,7 @@ def get(url):
         _last = time.time()
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with safenet.urlopen(req, timeout=60) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code in (403, 404, 410):
