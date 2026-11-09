@@ -54,6 +54,9 @@ jobs:
           print(max((k for k in s if s[k]["k"] == "Regular"), key=lambda k: s[k]["y"]))
           PY
           python versions.py "$(cat /tmp/cur.txt)" --budget 300
+      - name: Current legislators
+        continue-on-error: true
+        run: python roster.py
       - name: Committee hearing schedules
         continue-on-error: true
         run: python schedules.py --budget 120
