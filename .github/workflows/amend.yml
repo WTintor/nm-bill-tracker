@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: data-updates          # one data job at a time, so they can't overwrite each other
+  cancel-in-progress: false
+
 jobs:
   amend:
     runs-on: ubuntu-latest
@@ -29,9 +33,19 @@ jobs:
           key: amend-text-${{ github.event.inputs.session }}-${{ github.run_id }}
           restore-keys: amend-text-${{ github.event.inputs.session }}-
       - name: Download and extract
-        run: python amend.py fetch "${{ github.event.inputs.session }}" --budget ${{ github.event.inputs.budget }}
+        env:
+          SESSION: ${{ github.event.inputs.session }}
+          BUDGET: ${{ github.event.inputs.budget }}
+        run: |
+          # inputs arrive as environment variables and are validated, never pasted into the shell
+          [[ "$SESSION" =~ ^[0-9]{4}\ [A-Za-z0-9\ ]{1,30}$ ]] && [[ "$BUDGET" =~ ^[0-9]{1,5}$ ]] || { echo "bad input"; exit 1; }
+          python amend.py fetch "$SESSION" --budget "$BUDGET"
       - name: Boil down to the small file
-        run: python amend.py distill "${{ github.event.inputs.session }}"
+        env:
+          SESSION: ${{ github.event.inputs.session }}
+        run: |
+          [[ "$SESSION" =~ ^[0-9]{4}\ [A-Za-z0-9\ ]{1,30}$ ]] || { echo "bad input"; exit 1; }
+          python amend.py distill "$SESSION"
       - name: Commit only the small file
         run: |
           git config user.name "tracker-bot"

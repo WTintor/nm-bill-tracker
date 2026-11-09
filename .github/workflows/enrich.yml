@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: data-updates          # one data job at a time, so they can't overwrite each other
+  cancel-in-progress: false
+
 jobs:
   enrich:
     runs-on: ubuntu-latest
@@ -23,11 +27,15 @@ jobs:
           python-version: "3.12"
       - run: pip install pypdf beautifulsoup4
       - name: Run
+        env:
+          MODE: ${{ github.event.inputs.mode }}
+          BUDGET: ${{ github.event.inputs.budget }}
         run: |
-          case "${{ github.event.inputs.mode }}" in
+          [[ "$BUDGET" =~ ^[0-9]{1,5}$ ]] || BUDGET=0
+          case "$MODE" in
             status) python enrich.py status all ;;
             probe)  python enrich.py probe ;;
-            all)    python enrich.py all --budget ${{ github.event.inputs.budget }} ;;
+            all)    python enrich.py all --budget "$BUDGET" ;;
             *) echo "unknown mode"; exit 1 ;;
           esac
       - name: Commit results

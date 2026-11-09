@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: data-updates          # one data job at a time, so they can't overwrite each other
+  cancel-in-progress: false
+
 jobs:
   crawl:
     runs-on: ubuntu-latest
@@ -37,6 +41,30 @@ jobs:
         continue-on-error: true
         run: |
           if [ ! -f data/probe/report.txt ]; then python enrich.py probe; fi
+      - name: One-time look at calendar, legislator and committee pages
+        continue-on-error: true
+        run: |
+          if [ ! -f data/probe/report2.txt ]; then python enrich.py probe2; fi
+      - name: Compare introduced vs latest text for the current session
+        continue-on-error: true
+        run: |
+          python - <<'PY' > /tmp/cur.txt
+          import json
+          s = json.load(open("data/tracker.json"))["sessions"]
+          print(max((k for k in s if s[k]["k"] == "Regular"), key=lambda k: s[k]["y"]))
+          PY
+          python versions.py "$(cat /tmp/cur.txt)" --budget 300
+      - name: Committee hearing schedules
+        continue-on-error: true
+        run: python schedules.py --budget 120
+      - name: Log status changes
+        continue-on-error: true
+        run: python changes.py "$(cat /tmp/cur.txt)"
+      - name: Email digest to subscribers
+        continue-on-error: true
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: python digest.py
       - name: Commit changes
         run: |
           git config user.name "tracker-bot"
