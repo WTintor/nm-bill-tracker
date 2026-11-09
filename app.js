@@ -328,14 +328,17 @@ ${row("Session convenes", start, "third Tuesday of January")}${row("Adjourns (no
 /* ---------- people (sponsors) ---------- */
 const normName = n => n.replace(/[\u201c\u201d"]/g, '"').replace(/\s+/g, " ").trim();
 /* One entry per legislator: splits run-together names ("A B, C D", "A B / C D", "A and B"), tidies spacing, drops repeats. */
+const CODE = {};   // sponsor name -> legislator code (e.g. HSMAL), learned from the official list
 function sponsorsOf(sk, key) {
-  const raw = (((EXTRA[sk] || {}).status || {})[key] || {}).sponsors || [], out = [];
+  const st = ((EXTRA[sk] || {}).status || {})[key] || {}, raw = st.sponsors || [], out = [];
+  raw.forEach((n, i) => { if (st.sc && st.sc[i]) CODE[normName(String(n))] = st.sc[i]; });
   for (const r of raw) for (const part of String(r).split(/\s*(?:;|\/|\band\b|,(?!\s*(?:Jr|Sr|II|III|IV)\b))\s*/)) { const n = normName(part); if (n.length > 2 && !out.includes(n)) out.push(n); }
   return out;
 }
 const nameKey = n => n.toLowerCase().replace(/"[^"]*"/g, "").replace(/[^a-z ]/g, " ").replace(/\b(jr|sr|ii|iii|iv)\b/g, "").split(/\s+/).filter(Boolean);
 function legInfo(n) {   // match to the sitting-member roster by last name + first initial; undefined if not a current member
   const roster = (window.__roster || []), k = nameKey(n); if (!k.length) return;
+  if (CODE[n]) { const c = roster.find(p => p.code === CODE[n]); if (c) return c; }
   const last = k[k.length - 1], first = k[0];
   const hits = roster.filter(p => { const r = nameKey(p.n); return r[r.length - 1] === last && r[0][0] === first[0]; });
   return hits.length === 1 ? hits[0] : hits.find(p => nameKey(p.n)[0] === first);

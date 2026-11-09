@@ -210,10 +210,15 @@ def parse_page(text):
 ID = re.compile(r"^\*?\s*(HB|SB|HJR|SJR|HJM|SJM|HM|SM|HR|SR)\s*0*(\d+)$", re.I)
 
 def sponsor_names(td, text):
-    """One name per sponsor. Prefer the links in the cell (one link per legislator); fall back to commas."""
-    names = [" ".join(a.get_text(" ").split()) for a in td.find_all("a")]
-    names = [n for n in names if n]
-    return names or [s.strip() for s in text.split(",") if s.strip()]
+    """One (name, code) per sponsor. The cell holds one link per legislator, e.g. <a href="../Members/Legislator?SponCode=HSMAL">Nathan P. Small</a>
+    <a ...SponCode=HDIXO><br>Meredith A. Dixon</a>. The code identifies the person across years; fall back to commas."""
+    out = []
+    for a in td.find_all("a"):
+        n = " ".join(a.get_text(" ").split())
+        m = re.search(r"SponCode=([A-Za-z]+)", a.get("href", ""))
+        if n:
+            out.append((n, m.group(1).strip().upper() if m else ""))
+    return out or [(x.strip(), "") for x in re.split(r",|\n", text) if x.strip()]
 
 def parse_list(html):
     """Rows of the Legislation_List page -> {"HB2": {"title","sponsors","status"}}."""
@@ -231,8 +236,9 @@ def parse_list(html):
         m = ID.match(cells[0])
         if not m:
             continue
+        sp = sponsor_names(tds[2], cells[2])
         out[m.group(1).upper() + str(int(m.group(2)))] = {
-            "title": cells[1], "sponsors": sponsor_names(tds[2], cells[2]), "status": cells[3]}
+            "title": cells[1], "sponsors": [n for n, _ in sp], "sc": [c for _, c in sp], "status": cells[3]}
     return out
 
 _CODES = {}
