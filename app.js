@@ -239,6 +239,7 @@ async function loadExtra(sk) {
   try { out.versions = await fetch(`data/versions_${name}.json`).then(r => r.json()); } catch {}
   try { const sc = await fetch(`data/schedule.json`, {cache:"no-cache"}).then(r => r.json()); out.schedule = sc; } catch {}
   try { const c = await fetch(`data/changes.json`, {cache:"no-cache"}).then(r => r.json()); if (c.session === sk) out.changes = c; } catch {}
+  if (!window.__roster) { try { window.__roster = (await fetch("data/legislators.json").then(r => r.json())).people || []; } catch { window.__roster = []; } }
   for (const k in memo) delete memo[k];
   return EXTRA[sk] = out;
 }
@@ -325,11 +326,26 @@ ${row("Session convenes", start, "third Tuesday of January")}${row("Adjourns (no
 <div class="note">Dates are computed from the constitutional schedule, not read from the legislature's calendar. Committee hearing schedules aren't loaded yet; check nmlegis.gov for the official calendar.</div></details>`;
 }
 /* ---------- people (sponsors) ---------- */
+const normName = n => n.replace(/[\u201c\u201d"]/g, '"').replace(/\s+/g, " ").trim();
+/* One entry per legislator: splits run-together names ("A B, C D", "A B / C D", "A and B"), tidies spacing, drops repeats. */
+function sponsorsOf(sk, key) {
+  const raw = (((EXTRA[sk] || {}).status || {})[key] || {}).sponsors || [], out = [];
+  for (const r of raw) for (const part of String(r).split(/\s*(?:;|\/|\band\b|,(?!\s*(?:Jr|Sr|II|III|IV)\b))\s*/)) { const n = normName(part); if (n.length > 2 && !out.includes(n)) out.push(n); }
+  return out;
+}
+const nameKey = n => n.toLowerCase().replace(/"[^"]*"/g, "").replace(/[^a-z ]/g, " ").replace(/\b(jr|sr|ii|iii|iv)\b/g, "").split(/\s+/).filter(Boolean);
+function legInfo(n) {   // match to the sitting-member roster by last name + first initial; undefined if not a current member
+  const roster = (window.__roster || []), k = nameKey(n); if (!k.length) return;
+  const last = k[k.length - 1], first = k[0];
+  const hits = roster.filter(p => { const r = nameKey(p.n); return r[r.length - 1] === last && r[0][0] === first[0]; });
+  return hits.length === 1 ? hits[0] : hits.find(p => nameKey(p.n)[0] === first);
+}
+const legTag = i => i ? `(${i.p}) ${i.c === "H" ? "House" : "Senate"} District ${i.d}` : "";
 function peopleOf(sk) {
   const st = (EXTRA[sk] || {}).status || {}, m = {};
   for (const [key, v] of Object.entries(st)) {
     if (key === "_session" || !D.sessions[sk].bills[key]) continue;
-    (v.sponsors || []).forEach((n, i) => { if (!n) return; const p = m[n] = m[n] || { name: n, bills: [], primary: 0 }; p.bills.push(key); if (i === 0) p.primary++; });
+    sponsorsOf(sk, key).forEach((n, i) => { if (!n) return; const p = m[n] = m[n] || { name: n, bills: [], primary: 0 }; p.bills.push(key); if (i === 0) p.primary++; });
   }
   for (const p of Object.values(m)) { p.signed = 0; p.passed = 0; for (const k of p.bills) { const b = (statusOf(sk, k) || {}).bucket; if (b === "Signed into law") p.signed++; if (["Signed into law", "Vetoed", "Passed both chambers", "Passed one chamber"].includes(b)) p.passed++; } }
   return m;
@@ -341,7 +357,7 @@ function renderPeople() {
     const p = m[S.person], tc = {};
     for (const k of p.bills) { const t = topicOf(sk, k, D.sessions[sk].bills[k]); tc[t] = (tc[t] || 0) + 1; }
     const list = p.bills.map(k => [k, D.sessions[sk].bills[k]]).sort((a, b) => b[1].last.localeCompare(a[1].last));
-    $("#people").innerHTML = `<button class="btn" data-person="">← All sponsors</button><h2>${esc(p.name)} <small>${esc(label(sk))}</small></h2>
+    $("#people").innerHTML = `<button class="btn" data-person="">← All sponsors</button><h2>${esc(p.name)} <small>${esc(label(sk))}</small></h2>${legInfo(p.name) ? `<div class="meta" style="margin:-6px 2px 8px">${esc(legTag(legInfo(p.name)))}</div>` : ""}
 <div class="tiles" style="grid-template-columns:repeat(4,1fr)"><div class="tile k-sky"><b>${p.bills.length}</b><span>Bills</span></div><div class="tile k-turq"><b>${p.primary}</b><span>As lead</span></div><div class="tile k-gold"><b>${p.passed}</b><span>Passed a chamber</span></div><div class="tile k-red"><b>${p.signed}</b><span>Signed</span></div></div>
 <div class="note">Success rate: ${pct(p.signed, p.bills.length)}% signed, ${pct(p.passed, p.bills.length)}% passed at least one chamber. Includes bills they co-sponsored.</div>
 <div class="chips">${Object.entries(tc).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<span class="pill">${esc(t)} ${n}</span>`).join(" ")}</div>
@@ -352,7 +368,7 @@ ${list.slice(0, S.shown).map(([k, b]) => billCard(sk, k, b)).join("")}${list.len
   const rows = all.filter(p => !q || p.name.toLowerCase().includes(q)).sort((a, b) => b.bills.length - a.bills.length);
   $("#people").innerHTML = `<input id="pq" type="search" placeholder="Find a sponsor" value="${esc(S.pq || "")}" autocomplete="off">
 <h2>Sponsors in ${esc(label(sk))} <small>${rows.length} people</small></h2>
-<div class="tbl card" style="padding:0"><table><tr><th>Sponsor</th><th>Bills</th><th>Lead</th><th>Passed</th><th>Signed</th></tr>${rows.slice(0, 200).map(p => `<tr><td><a href="#" data-person="${esc(p.name)}">${esc(p.name)}</a></td><td>${p.bills.length}</td><td>${p.primary}</td><td>${pct(p.passed, p.bills.length)}%</td><td>${pct(p.signed, p.bills.length)}%</td></tr>`).join("")}</table></div>
+<div class="tbl card" style="padding:0"><table><tr><th>Sponsor</th><th>Bills</th><th>Lead</th><th>Passed</th><th>Signed</th></tr>${rows.slice(0, 200).map(p => `<tr><td><a href="#" data-person="${esc(p.name)}">${esc(p.name)}</a>${legInfo(p.name) ? ` <span class="meta">${esc(legInfo(p.name).p + " " + legInfo(p.name).c + legInfo(p.name).d)}</span>` : ""}</td><td>${p.bills.length}</td><td>${p.primary}</td><td>${pct(p.passed, p.bills.length)}%</td><td>${pct(p.signed, p.bills.length)}%</td></tr>`).join("")}</table></div>
 <div class="note">Counts come from the legislature's bill listing. Passed and Signed are shares of each person's bills, co-sponsored ones included.</div>`;
   const inp = $("#pq"); inp.addEventListener("input", e => { S.pq = e.target.value; const pos = e.target.selectionStart; renderPeople(); const n = $("#pq"); n.focus(); n.setSelectionRange(pos, pos); });
 }
@@ -621,7 +637,7 @@ function renderBills() {
   const sks = S.all ? sessList() : [S.cur], words = S.q.toLowerCase().split(/\s+/).filter(Boolean), items = [];
   for (const sk of sks) for (const [key, b] of Object.entries(D.sessions[sk].bills)) {
     if (!passes(sk, key, b)) continue;
-    if (words.length) { const hay = `${key} ${b.t} ${b.n} ${b.t}${b.n} ${shortTitle(sk, key)} ${longTitle(sk, key)} ${((((EXTRA[sk] || {}).status || {})[key] || {}).sponsors || []).join(" ")}`.toLowerCase(); if (!words.every(w => expand(w).some(x => hay.includes(x)))) continue; }
+    if (words.length) { const hay = `${key} ${b.t} ${b.n} ${b.t}${b.n} ${shortTitle(sk, key)} ${longTitle(sk, key)} ${sponsorsOf(sk, key).join(" ")}`.toLowerCase(); if (!words.every(w => expand(w).some(x => hay.includes(x)))) continue; }
     items.push([sk, key, b]);
   }
   items.sort((x, y) => y[2].last.localeCompare(x[2].last));
@@ -786,6 +802,7 @@ async function openBill(id) {
     <div class="meta">Last activity ${fmtD(b.last)}${tp && tp !== PENDING ? " · " + esc(tp) : ""}</div>
     <div style="margin:6px 0">${(() => { const s = statusOf(sk, key); return s ? `<span class="meta">Official status line:</span> <span style="font-size:14px">${esc(s.text)}</span>` : `<span class="meta">Official status not loaded yet for this session. The documents below show what has been posted, not whether the bill passed.</span>`; })()}</div>
     <p style="margin:8px 0">${title ? esc(nice(title)) : "Title not collected yet."}</p>
+${(() => { const sp = sponsorsOf(sk, key); return sp.length ? `<div class="meta" style="margin-bottom:6px">Sponsor${sp.length > 1 ? "s" : ""}: ${sp.map((n, i) => `<a href="#" data-sponsor="${esc(n)}">${esc(n)}</a>${legInfo(n) ? " <span class=\"meta\">" + esc(legInfo(n).p + "-" + legInfo(n).c + legInfo(n).d) + "</span>" : ""}${i === 0 && sp.length > 1 ? " (lead)" : ""}`).join(", ")}</div>` : ""; })()}
 ${(() => { const pl = plainOf(sk, key, b); return `<div class="plain k-${pl.bucket ? STC[pl.bucket] : "mute"}"><b>${pl.bucket ? esc(pl.bucket) : "Status not loaded"}</b>${esc(pl.line)}</div>`; })()}${cmLineFor(sk, key)}${whereStuck(sk, key, b)}
     ${shortTitle(sk, key) && longTitle(sk, key) ? `<div class="note">Official title: ${esc(nice(longTitle(sk, key)))}</div>` : ""}
 ${(() => { const d = dummyOf(sk, key, b); return d ? `<div class="banner"><b>${dummyTag(d)}.</b> The introduced text is only about ${d.words} words${d.blanks ? " with blank placeholders" : ""}, so it was filed as a placeholder.${d.sub ? " A committee substitute was posted later; the real content is in the substitute, not the introduced bill." : " No committee substitute is posted yet."}</div>` : ""; })()}
@@ -834,7 +851,7 @@ function render() {
 }
 const go = t => { S.tab = t; S.shown = 40; render(); scrollTo(0, 0); };
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-tab],[data-sg],[data-aa],[data-clear],[data-pos],[data-brief],[data-print],[data-bdays],[data-copybrief],[data-share],[data-backup],[data-copy],[data-pospick],[data-person],[data-s],[data-topic],[data-win],[data-group],[data-pipes],[data-st],[data-dummy],[data-gotopic],[data-type],[data-stage],[data-opt],[data-w],[data-w2],[data-open],[data-more],[data-evmore],[data-metric],[data-csv],[data-close],[data-cm],[data-cmlist],[data-mycm]");
+  const t = e.target.closest("[data-tab],[data-sg],[data-aa],[data-clear],[data-pos],[data-brief],[data-print],[data-bdays],[data-copybrief],[data-share],[data-backup],[data-copy],[data-pospick],[data-person],[data-s],[data-topic],[data-win],[data-group],[data-pipes],[data-st],[data-dummy],[data-gotopic],[data-type],[data-stage],[data-opt],[data-w],[data-w2],[data-open],[data-more],[data-evmore],[data-metric],[data-csv],[data-close],[data-cm],[data-cmlist],[data-mycm],[data-sponsor]");
   if (!t) { if (e.target.id === "sheet") $("#sheet").classList.remove("on"); return; }
   const d = t.dataset;
   if (t.tagName === "A" && !t.target) e.preventDefault();
@@ -853,6 +870,7 @@ document.addEventListener("click", e => {
   if (d.aa !== undefined) { document.body.classList.toggle("big"); ls.set("big", document.body.classList.contains("big")); return; }
   if (d.sg !== undefined) { if (d.tab === undefined) { S.sg = d.sg; S.status = null; S.topic = null; S.q = ""; return go("bills"); } }
   if (d.clear !== undefined) { S.q = ""; S.sg = ""; S.status = null; S.topic = null; S.types.clear(); S.stages.clear(); S.pos = ""; S.onlyW = false; S.dummy = "all"; S.shown = 40; return render(); }
+  if (d.sponsor !== undefined) { S.person = d.sponsor; S.shown = 40; S.tab = "people"; $("#sheet").classList.remove("on"); render(); scrollTo(0, 0); return; }
   if (d.mycm !== undefined) { MYCM.has(d.mycm) ? MYCM.delete(d.mycm) : MYCM.add(d.mycm); ls.set("mycm", [...MYCM]); return render(); }
   if (d.cmlist !== undefined) { S.cmlist = d.cmlist; S.cm = ""; S.shown = 40; S.tab = "committees"; $("#sheet").classList.remove("on"); render(); scrollTo(0, 0); return; }
   if (d.cm !== undefined) { S.cm = d.cm; S.cmlist = ""; S.tab = "committees"; $("#sheet").classList.remove("on"); render(); scrollTo(0, 0); return; }
