@@ -18,14 +18,14 @@ def parse(html, chamber):
         code = re.search(r"SponCode=([A-Za-z]+)", a["href"]).group(1).strip().upper()
         cell = a.find_parent(["tr", "li", "div"])
         txt = " ".join((cell or a).get_text(" ").split())
-        m = re.match(r"(.+?)\s+-\s+\((\w)\)\s+District\s+(\d+)", txt)
+        m = re.match(r"(.+?)\s+-\s+\((\w)\)\s+District:?\s*(\d+)", txt)
         if m:
             out.append({"n": m.group(1).strip(), "c": chamber, "p": m.group(2), "d": int(m.group(3)), "code": code})
     return out
 
 def main():
     people = []
-    for ch, t in (("H", "H"), ("S", "S")):
+    for ch, t in (("H", "R"), ("S", "S")):   # the site calls the House list T=R
         html = get("https://www.nmlegis.gov/Members/Legislator_List?T=" + t)
         got = parse(html, ch) if html else []
         print("roster %s: %d" % (ch, len(got)), file=sys.stderr)
