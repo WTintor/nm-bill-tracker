@@ -147,8 +147,8 @@ function parseStatus(text) {
   if (pstCache.has(text)) return pstCache.get(text);
   const t = text.replace(/\(Succeeding entries[^)]*\)/i, " ");
   const ev = [];                       // [index, kind, value]
-  let m, re = /(?:^|[\s\]\-\/])((?:[A-Z&]{2,6}\/)*[A-Z&]{2,6})-\s?([HS][A-Z&]{2,5})(?=[\s.\[,\-]|$)/g;
-  while ((m = re.exec(t))) { if (COMMS[m[2]]) ev.push([m.index + m[0].length, "in", m[2], m[1]]); }
+  let m, re = /(?:^|[\s\]\-])([A-Za-z&\/]{2,40})-\s?([HS][A-Z&]{2,5})(?=[\s.\[,\-]|$)/g;
+  while ((m = re.exec(t))) { if (COMMS[m[2]]) ev.push([m.index + m[0].length, "in", m[2], m[1].replace(/\/a+$/, "")]); }
   re = /(?:^|[\s\]])(DP(?:\/a+)?|w\/drn|PASSED\/[HS]|DNP-CS\/DP|DNP-CS\/DP\/a|w\/o rec)(?=[\s\[.]|$)(?!-)/g;
   while ((m = re.exec(t))) { if (/^(DP|DNP|w\/o)/.test(m[1]) && /-\s?[HS][A-Z&]{2,5}\b/.test(t.slice(m.index + m[0].length - 1, m.index + m[0].length + 12)) && COMMS[(t.slice(m.index + m[0].length).match(/^-\s?([HS][A-Z&]{2,5})/) || [])[1]]) continue; ev.push([m.index, "out", m[1]]); }
   ev.sort((x, y) => x[0] - y[0]);
